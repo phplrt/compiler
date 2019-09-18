@@ -1,0 +1,48 @@
+{
+    "name": "phplrt/compiler",
+    "type": "library",
+    "description": "The phplrt compiler package.",
+    "license": "MIT",
+    "keywords": [
+        "compiler",
+        "builder",
+        "grammar",
+        "language"
+    ],
+    "homepage": "https://github.com/phplrt",
+    "support": {
+        "issues": "https://github.com/phplrt/phplrt/issues",
+        "source": "https://github.com/phplrt/compiler"
+    },
+    "authors": [
+        {
+            "name": "Kirill Nesmeyanov",
+            "email": "nesk@xakep.ru"
+        }
+    ],
+    "require": {
+        "php": ">=7.1.3",
+        "symfony/polyfill-php73": "~1.12",
+        "zendframework/zend-code": "~3.0",
+        "phplrt/lexer": "~2.0|2.0.x-dev",
+        "phplrt/parser": "~2.0|2.0.x-dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "Phplrt\\Compiler\\": ""
+        }
+    },
+    "require-dev": {
+        "symfony/var-dumper": "~4.0"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "2.0.x-dev"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
