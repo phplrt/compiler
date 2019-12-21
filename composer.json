@@ -21,6 +21,7 @@
         "phplrt/lexer": "^3.0",
         "phplrt/visitor": "^3.0",
         "phplrt/position": "^3.0",
+        "phplrt/extractor": "^3.0",
         "phplrt/parser": "^3.0",
         "phplrt/grammar": "^3.0",
         "nikic/php-parser": "~4.3"
@@ -29,9 +30,6 @@
         "psr-4": {
             "Phplrt\\Compiler\\": "src"
         }
-    },
-    "require-dev": {
-        "symfony/var-dumper": "^4.0|^5.0"
     },
     "extra": {
         "branch-alias": {
