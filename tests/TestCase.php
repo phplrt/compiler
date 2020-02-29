@@ -9,13 +9,14 @@
 
 declare(strict_types=1);
 
-namespace Phplrt\Compiler\Grammar;
+namespace Phplrt\Compiler\Tests;
 
-use Phplrt\Contracts\Parser\ParserInterface;
+use PHPUnit\Framework\TestCase as BaseTestCase;
 
 /**
- * Interface GrammarInterface
+ * Class TestCase
  */
-interface GrammarInterface extends ParserInterface
+abstract class TestCase extends BaseTestCase
 {
+
 }
