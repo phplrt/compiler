@@ -15,7 +15,7 @@ use Phplrt\Compiler\Ast\Node;
 
 /**
  * @internal Statement is an internal library class, please do not use it in your code.
- * @psalm-internal Phplrt\Compiler
+ * @psalm-internal Phplrt\compiler
  */
 abstract class Statement extends Node
 {

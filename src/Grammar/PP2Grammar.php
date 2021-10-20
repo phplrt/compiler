@@ -29,7 +29,7 @@ class PP2Grammar implements GrammarInterface
     private Parser $runtime;
 
     /**
-     * Parser constructor.
+     * parser constructor.
      */
     public function __construct()
     {

@@ -15,7 +15,7 @@ use Phplrt\Compiler\Ast\Node;
 
 /**
  * @internal Expression is an internal library class, please do not use it in your code.
- * @psalm-internal Phplrt\Compiler
+ * @psalm-internal Phplrt\compiler
  */
 abstract class Expression extends Node
 {

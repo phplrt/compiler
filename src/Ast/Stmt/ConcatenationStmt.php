@@ -15,7 +15,7 @@ use Phplrt\Contracts\Ast\NodeInterface;
 
 /**
  * @internal ConcatenationStmt is an internal library class, please do not use it in your code.
- * @psalm-internal Phplrt\Compiler
+ * @psalm-internal Phplrt\compiler
  */
 class ConcatenationStmt extends Statement
 {
