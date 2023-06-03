@@ -1,12 +1,5 @@
 <?php
 
-/**
- * This file is part of phplrt package.
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 declare(strict_types=1);
 
 namespace Phplrt\Compiler;
@@ -29,7 +22,7 @@ class SampleNode implements NodeInterface
     /**
      * @var array<array-key, SampleNode>
      */
-    public array $children;
+    public array $children = [];
 
     /**
      * @param int<0, max> $offset

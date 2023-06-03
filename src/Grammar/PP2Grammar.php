@@ -1,12 +1,5 @@
 <?php
 
-/**
- * This file is part of phplrt package.
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 declare(strict_types=1);
 
 namespace Phplrt\Compiler\Grammar;
@@ -51,7 +44,7 @@ class PP2Grammar implements GrammarInterface, BuilderInterface
     /**
      * @var array|\Closure[]
      */
-    private array $reducers;
+    private array $reducers = [];
 
     public function __construct()
     {
@@ -80,7 +73,7 @@ class PP2Grammar implements GrammarInterface, BuilderInterface
     {
         return [
             20 => static function (array $delegates): NodeInterface {
-                if (\count($delegates) === 0) {
+                if ($delegates === []) {
                     return new DelegateStmt(null);
                 }
 

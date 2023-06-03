@@ -1,21 +1,11 @@
 <?php
 
-/**
- * This file is part of phplrt package.
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 declare(strict_types=1);
 
 namespace Phplrt\Compiler\Renderer;
 
 abstract class Renderer implements RendererInterface
 {
-    /**
-     * {@inheritDoc}
-     */
     public function fromString($data, int $depth = 0, bool $multiline = true): string
     {
         $prefix = $this->prefix($depth);
@@ -29,10 +19,10 @@ abstract class Renderer implements RendererInterface
             }
 
             if ($multiline) {
-                return "[\n" . \implode(",\n", $result) . "\n{$prefix}]";
+                return \sprintf("[\n%s\n%s]", \implode(",\n", $result), $prefix);
             }
 
-            return '[' . \implode(', ', $result) . "{$prefix}]";
+            return \sprintf("[%s%s]", \implode(', ', $result), $prefix);
         }
 
         return (string)$data;
@@ -52,9 +42,6 @@ abstract class Renderer implements RendererInterface
         return \sprintf('%s => %s', $this->prefix($depth) . $this->fromPhp($key), (string)$value);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function prefix(int $depth): string
     {
         return \str_repeat(' ', $depth * 4);

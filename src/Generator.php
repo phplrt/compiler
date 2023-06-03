@@ -1,12 +1,5 @@
 <?php
 
-/**
- * This file is part of phplrt package.
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 declare(strict_types=1);
 
 namespace Phplrt\Compiler;
@@ -86,7 +79,7 @@ class Generator
         return \implode("\n", [
             '<?php',
             ...\array_values($this->getUses()),
-            "return {$result};",
+            sprintf('return %s;', $result),
         ]);
     }
 
@@ -98,10 +91,13 @@ class Generator
         $usages = [];
 
         foreach ($this->declarations as $class => $alias) {
-            $usages[] = $alias ? "use {$class} as {$alias};" : "use {$class};";
+            $class = \trim($class, '\\');
+            $usages[] = $alias
+                ? \sprintf('use %s as %s;', $class, $alias)
+                : \sprintf('use %s;', $class);
         }
 
-        if (\count($usages)) {
+        if ($usages !== []) {
             \array_unshift($usages, '');
             $usages[] = '';
         }
@@ -115,7 +111,7 @@ class Generator
      */
     private function getRules(int $depth): array
     {
-        $map = fn(RuleInterface $rule): string => $this->getRuleAsString($rule, $depth);
+        $map = fn (RuleInterface $rule): string => $this->getRuleAsString($rule, $depth);
 
         return \array_map($map, $this->analyzer->rules);
     }
