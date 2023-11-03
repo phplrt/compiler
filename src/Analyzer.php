@@ -80,14 +80,8 @@ class Analyzer extends Visitor
      */
     private array $aliases = [];
 
-    /**
-     * @var IdCollection
-     */
     private IdCollection $ids;
 
-    /**
-     * @param IdCollection $ids
-     */
     public function __construct(IdCollection $ids)
     {
         $this->ids = $ids;
@@ -103,7 +97,7 @@ class Analyzer extends Visitor
         if ($node instanceof TokenDef) {
             $state = $node->state ?: self::STATE_DEFAULT;
 
-            if (! \array_key_exists($state, $this->tokens)) {
+            if (!\array_key_exists($state, $this->tokens)) {
                 $this->tokens[$state] = [];
             }
 
@@ -113,7 +107,7 @@ class Analyzer extends Visitor
                 $this->transitions[$state][$node->name] = $node->next;
             }
 
-            if (! $node->keep) {
+            if (!$node->keep) {
                 $this->skip[] = $node->name;
             }
         }
@@ -165,7 +159,6 @@ class Analyzer extends Visitor
     }
 
     /**
-     * @param RuleInterface $rule
      * @param non-empty-string|null $name
      * @return non-empty-string|int<0, max>
      */
@@ -191,8 +184,6 @@ class Analyzer extends Visitor
     }
 
     /**
-     * @param RuleDef $def
-     * @return RuleInterface
      * @throws NotAccessibleException
      * @throws ParserRuntimeException
      * @throws \RuntimeException
@@ -209,7 +200,6 @@ class Analyzer extends Visitor
     }
 
     /**
-     * @param Statement $statement
      * @return RuleInterface|non-empty-string|int<0, max>
      * @throws NotAccessibleException
      * @throws ParserRuntimeException
@@ -251,7 +241,6 @@ class Analyzer extends Visitor
     }
 
     /**
-     * @param AlternationStmt $choice
      * @return array<RuleInterface|non-empty-string|int<0, max>>
      * @throws NotAccessibleException
      * @throws ParserRuntimeException
@@ -338,8 +327,6 @@ class Analyzer extends Visitor
     }
 
     /**
-     * @param TokenStmt $token
-     * @return Lexeme
      * @throws NotAccessibleException
      * @throws \RuntimeException
      */
@@ -355,7 +342,6 @@ class Analyzer extends Visitor
     }
 
     /**
-     * @param RuleStmt $rule
      * @return non-empty-string|int<0, max>
      * @throws NotAccessibleException
      * @throws \RuntimeException

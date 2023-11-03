@@ -15,14 +15,8 @@ use Phplrt\Parser\Grammar\RuleInterface;
 
 class Generator
 {
-    /**
-     * @var Analyzer
-     */
     protected Analyzer $analyzer;
 
-    /**
-     * @var RendererInterface
-     */
     private RendererInterface $renderer;
 
     /**
@@ -30,10 +24,6 @@ class Generator
      */
     private array $declarations = [];
 
-    /**
-     * @param Analyzer $analyzer
-     * @param RendererInterface $renderer
-     */
     public function __construct(Analyzer $analyzer, RendererInterface $renderer)
     {
         $this->analyzer = $analyzer;
@@ -54,17 +44,11 @@ class Generator
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function __toString(): string
     {
         return $this->generate();
     }
 
-    /**
-     * @return string
-     */
     public function generate(): string
     {
         $result = $this->renderer->fromString([
@@ -111,15 +95,13 @@ class Generator
      */
     private function getRules(int $depth): array
     {
-        $map = fn (RuleInterface $rule): string => $this->getRuleAsString($rule, $depth);
+        $map = fn(RuleInterface $rule): string => $this->getRuleAsString($rule, $depth);
 
         return \array_map($map, $this->analyzer->rules);
     }
 
     /**
-     * @param RuleInterface $rule
      * @param int<0, max> $depth
-     * @return string
      */
     private function getRuleAsString(RuleInterface $rule, int $depth): string
     {
@@ -143,13 +125,10 @@ class Generator
 
     /**
      * @param int<0, max> $depth
-     * @param RuleInterface $rule
-     * @param array $args
-     * @return string
      */
     private function newRule(int $depth, RuleInterface $rule, array $args): string
     {
-        $args = \array_map(function ($arg) use ($depth) {
+        $args = \array_map(function ($arg) use ($depth): string {
             return $this->renderer->fromPhp($arg, $depth, false);
         }, $args);
 
@@ -158,7 +137,6 @@ class Generator
 
     /**
      * @param int<0, max> $depth
-     * @return array
      */
     private function getReducers(int $depth): array
     {
@@ -170,9 +148,7 @@ class Generator
     }
 
     /**
-     * @param string $code
      * @param int<0, max> $depth
-     * @return string
      */
     private function toFunction(string $code, int $depth): string
     {
@@ -194,7 +170,7 @@ class Generator
     {
         $prefix = $this->renderer->prefix($depth + 1);
 
-        $lines[0] = $prefix . $lines[0] ?? '';
+        $lines[0] = $prefix . ($lines[0] ?? '');
 
         $lines = $this->addInjections($lines, [
             'file'   => $prefix . '$file = $ctx->getSource();',
@@ -231,7 +207,6 @@ class Generator
     /**
      * @param array<string> $lines
      * @param non-empty-string $variable
-     * @return bool
      */
     private function has(array $lines, string $variable): bool
     {
