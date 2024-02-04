@@ -13,22 +13,14 @@ use Phplrt\Parser\Grammar\Optional;
 use Phplrt\Parser\Grammar\Repetition;
 use Phplrt\Parser\Grammar\RuleInterface;
 
-class Generator
+class Generator implements \Stringable
 {
-    protected Analyzer $analyzer;
-
-    private RendererInterface $renderer;
-
     /**
      * @var array<class-string, non-empty-string|null>
      */
     private array $declarations = [];
 
-    public function __construct(Analyzer $analyzer, RendererInterface $renderer)
-    {
-        $this->analyzer = $analyzer;
-        $this->renderer = $renderer;
-    }
+    public function __construct(protected Analyzer $analyzer, private RendererInterface $renderer) {}
 
     /**
      * @param class-string $class
@@ -105,22 +97,13 @@ class Generator
      */
     private function getRuleAsString(RuleInterface $rule, int $depth): string
     {
-        switch (true) {
-            case $rule instanceof Alternation:
-            case $rule instanceof Concatenation:
-                return $this->newRule($depth, $rule, [$rule->sequence]);
-
-            case $rule instanceof Lexeme:
-                return $this->newRule($depth, $rule, [$rule->token, $rule->keep]);
-
-            case $rule instanceof Optional:
-                return $this->newRule($depth, $rule, [$rule->rule]);
-
-            case $rule instanceof Repetition:
-                return $this->newRule($depth, $rule, [$rule->rule, $rule->gte, $rule->lte]);
-        }
-
-        return $this->newRule($depth, $rule, []);
+        return match (true) {
+            $rule instanceof Alternation, $rule instanceof Concatenation => $this->newRule($depth, $rule, [$rule->sequence]),
+            $rule instanceof Lexeme => $this->newRule($depth, $rule, [$rule->token, $rule->keep]),
+            $rule instanceof Optional => $this->newRule($depth, $rule, [$rule->rule]),
+            $rule instanceof Repetition => $this->newRule($depth, $rule, [$rule->rule, $rule->gte, $rule->lte]),
+            default => $this->newRule($depth, $rule, []),
+        };
     }
 
     /**
@@ -132,7 +115,7 @@ class Generator
             return $this->renderer->fromPhp($arg, $depth, false);
         }, $args);
 
-        return 'new \\' . \get_class($rule) . '(' . \implode(', ', $args) . ')';
+        return 'new \\' . $rule::class . '(' . \implode(', ', $args) . ')';
     }
 
     /**

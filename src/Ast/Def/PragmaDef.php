@@ -17,20 +17,14 @@ class PragmaDef extends Definition
     public string $name;
 
     /**
-     * @var non-empty-string
-     */
-    public string $value;
-
-    /**
      * @param non-empty-string $name
      * @param non-empty-string $value
      */
-    public function __construct(string $name, string $value)
+    public function __construct(string $name, public string $value)
     {
         assert($name !== '', 'Pragma name must not be empty');
         assert($name !== '', 'Name must not be empty');
 
         $this->name = $name;
-        $this->value = $value;
     }
 }

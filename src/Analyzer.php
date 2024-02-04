@@ -80,12 +80,7 @@ class Analyzer extends Visitor
      */
     private array $aliases = [];
 
-    private IdCollection $ids;
-
-    public function __construct(IdCollection $ids)
-    {
-        $this->ids = $ids;
-    }
+    public function __construct(private IdCollection $ids) {}
 
     /**
      * {@inheritDoc}
@@ -234,7 +229,7 @@ class Analyzer extends Visitor
                 return $this->ruleRelation($statement);
 
             default:
-                $error = \sprintf('Unsupported statement %s', \get_class($statement));
+                $error = \sprintf('Unsupported statement %s', $statement::class);
 
                 throw new GrammarException($error, $statement->file, $statement->offset);
         }
@@ -284,7 +279,7 @@ class Analyzer extends Visitor
      * @throws ParserRuntimeException
      * @throws \RuntimeException
      */
-    private function load($stmt)
+    private function load(\Phplrt\Compiler\Ast\Stmt\Statement|array $stmt)
     {
         if (\is_array($stmt)) {
             return $this->mapAll($this->reduceAll($stmt));

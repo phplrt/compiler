@@ -12,17 +12,12 @@ use Phplrt\Source\Exception\NotAccessibleException;
 
 class PP2PHPLexer implements LexerInterface
 {
-    private PhpLexer $lexer;
-
     /**
      * @var int<0, max>
      */
     private int $depth = 0;
 
-    public function __construct(PhpLexer $lexer)
-    {
-        $this->lexer = $lexer;
-    }
+    public function __construct(private PhpLexer $lexer) {}
 
     /**
      * @param resource|string|ReadableInterface $source

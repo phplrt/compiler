@@ -19,23 +19,14 @@ class RuleDef extends Definition
      */
     public string $name;
 
-    public DelegateStmt $delegate;
-
-    public Statement $body;
-
-    public bool $keep;
-
     /**
      * @param non-empty-string $name
      */
-    public function __construct(string $name, DelegateStmt $delegate, Statement $body, bool $keep = true)
+    public function __construct(string $name, public DelegateStmt $delegate, public Statement $body, public bool $keep = true)
     {
         assert($name !== '', 'Rule name must not be empty');
 
         $this->name = $name;
-        $this->body = $body;
-        $this->delegate = $delegate;
-        $this->keep = $keep;
     }
 
     public function getIterator(): \Traversable
