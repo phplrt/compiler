@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phplrt\Compiler;
+namespace Phplrt\Compiler\Compiler;
 
 use Phplrt\Compiler\Ast\Def\PragmaDef;
 use Phplrt\Compiler\Ast\Def\RuleDef;
@@ -26,25 +26,29 @@ use Phplrt\Parser\Grammar\RuleInterface;
 use Phplrt\Source\Exception\NotAccessibleException;
 use Phplrt\Visitor\Visitor;
 
-class Analyzer extends Visitor
+/**
+ * @internal This is an internal library class, please do not use it in your code.
+ * @psalm-internal Phplrt\Compiler
+ */
+class CompilerContext extends Visitor
 {
     /**
-     * @var string
+     * @var non-empty-string
      */
     public const STATE_DEFAULT = 'default';
 
     /**
-     * @var string
+     * @var non-empty-string
      */
     public const PRAGMA_ROOT = 'root';
 
     /**
-     * @var array<RuleInterface>
+     * @var list<RuleInterface>
      */
     public array $rules = [];
 
     /**
-     * @var array<string>
+     * @var list<string>
      */
     public array $reducers = [];
 
@@ -61,14 +65,14 @@ class Analyzer extends Visitor
     public array $transitions = [];
 
     /**
-     * @var array<array-key, non-empty-string>
+     * @var list<non-empty-string>
      */
     public array $skip = [];
 
     /**
      * @var non-empty-string|int|null
      */
-    public $initial;
+    public int|string|null $initial = null;
 
     /**
      * @var int<0, max>
@@ -80,7 +84,9 @@ class Analyzer extends Visitor
      */
     private array $aliases = [];
 
-    public function __construct(private IdCollection $ids) {}
+    public function __construct(
+        private readonly IdCollection $ids,
+    ) {}
 
     /**
      * {@inheritDoc}
@@ -144,7 +150,7 @@ class Analyzer extends Visitor
      * @param non-empty-string $rule
      * @return non-empty-string|int<0, max>
      */
-    private function name(string $rule)
+    private function name(string $rule): string|int
     {
         if ($this->ids->rule($rule) === false) {
             return $this->aliases[$rule] ??= $this->counter++;
@@ -157,7 +163,7 @@ class Analyzer extends Visitor
      * @param non-empty-string|null $name
      * @return non-empty-string|int<0, max>
      */
-    private function register(RuleInterface $rule, string $name = null)
+    private function register(RuleInterface $rule, string $name = null): string|int
     {
         if ($name === null) {
             $this->rules[$this->counter] = $rule;
@@ -201,7 +207,7 @@ class Analyzer extends Visitor
      * @throws \RuntimeException
      * @psalm-suppress PossiblyInvalidArgument
      */
-    private function reduce(Statement $statement)
+    private function reduce(Statement $statement): RuleInterface|string|int
     {
         switch (true) {
             case $statement instanceof AlternationStmt:
@@ -236,11 +242,7 @@ class Analyzer extends Visitor
     }
 
     /**
-     * @return array<RuleInterface|non-empty-string|int<0, max>>
-     * @throws NotAccessibleException
-     * @throws ParserRuntimeException
-     * @throws \RuntimeException
-     * @psalm-suppress ArgumentTypeCoercion
+     * @return list<int|string>
      */
     private function loadForAlternation(AlternationStmt $choice): array
     {
@@ -259,11 +261,7 @@ class Analyzer extends Visitor
         return $choices;
     }
 
-    /**
-     * @param RuleInterface|non-empty-string|int<0, max> $rule
-     * @return RuleInterface|non-empty-string|int<0, max>
-     */
-    private function map($rule)
+    private function map(RuleInterface|int|string $rule): int|string
     {
         if ($rule instanceof RuleInterface) {
             return $this->register($rule);
@@ -272,14 +270,7 @@ class Analyzer extends Visitor
         return $rule;
     }
 
-    /**
-     * @param Statement|array<Statement> $stmt
-     * @return RuleInterface|non-empty-string|int<0, max>|array<RuleInterface|non-empty-string|int<0, max>>
-     * @throws NotAccessibleException
-     * @throws ParserRuntimeException
-     * @throws \RuntimeException
-     */
-    private function load(\Phplrt\Compiler\Ast\Stmt\Statement|array $stmt)
+    private function load(Statement|string|int|array $stmt): string|int|array
     {
         if (\is_array($stmt)) {
             return $this->mapAll($this->reduceAll($stmt));
@@ -289,8 +280,9 @@ class Analyzer extends Visitor
     }
 
     /**
-     * @param array<RuleInterface|non-empty-string|int<0, max>> $rules
-     * @return array<RuleInterface|non-empty-string|int<0, max>>
+     * @param RuleInterface $rules
+     *
+     * @return RuleInterface
      */
     private function mapAll(array $rules): array
     {
@@ -304,8 +296,9 @@ class Analyzer extends Visitor
     }
 
     /**
-     * @param array<Statement> $statements
-     * @return array<RuleInterface|non-empty-string|int<0, max>>
+     * @param RuleInterface $statements
+     *
+     * @return RuleInterface
      * @throws NotAccessibleException
      * @throws ParserRuntimeException
      * @throws \RuntimeException
@@ -341,7 +334,7 @@ class Analyzer extends Visitor
      * @throws NotAccessibleException
      * @throws \RuntimeException
      */
-    private function ruleRelation(RuleStmt $rule)
+    private function ruleRelation(RuleStmt $rule): int|string
     {
         if ($this->ids->rule($rule->name) === null) {
             $error = \sprintf('Rule "%s" has not been defined', $rule->name);

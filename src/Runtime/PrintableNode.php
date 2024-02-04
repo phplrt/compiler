@@ -2,22 +2,30 @@
 
 declare(strict_types=1);
 
-namespace Phplrt\Compiler;
+namespace Phplrt\Compiler\Runtime;
 
 use Phplrt\Contracts\Ast\NodeInterface;
 use Phplrt\Contracts\Lexer\TokenInterface;
 
-class SampleNode implements NodeInterface, \Stringable
+/**
+ * @internal This is an internal library class, please do not use it in your code.
+ * @psalm-internal Phplrt\Compiler\Runtime
+ */
+class PrintableNode implements NodeInterface, \Stringable
 {
     /**
      * @param int<0, max> $offset
      * @param non-empty-string $state
-     * @param array<array-key, SampleNode> $children
+     * @param array<array-key, PrintableNode> $children
      */
-    public function __construct(private int $offset, private string $state, public array $children) {}
+    public function __construct(
+        private readonly int $offset,
+        private readonly string $state,
+        public array $children,
+    ) {}
 
     /**
-     * @return \Traversable<non-empty-string, array<array-key, SampleNode>>
+     * @return \Traversable<non-empty-string, array<array-key, PrintableNode>>
      */
     public function getIterator(): \Traversable
     {

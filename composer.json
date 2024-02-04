@@ -17,7 +17,6 @@
     ],
     "require": {
         "php": "^8.1",
-        "laminas/laminas-code": "^4.0",
         "phplrt/lexer": "^4.0",
         "phplrt/visitor": "^4.0",
         "phplrt/position": "^4.0",

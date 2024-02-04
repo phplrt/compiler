@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Phplrt\Compiler;
+namespace Phplrt\Compiler\Runtime;
 
 use Phplrt\Parser\BuilderInterface;
 use Phplrt\Parser\Context;
 
-class AstBuilder implements BuilderInterface
+class PrintableNodeBuilder implements BuilderInterface
 {
-    public function build(Context $context, $result): ?SampleNode
+    public function build(Context $context, mixed $result): ?PrintableNode
     {
         if (!\is_string($context->getState())) {
             return null;
@@ -17,9 +17,9 @@ class AstBuilder implements BuilderInterface
 
         $token = $context->getToken();
 
-        /** @var array<SampleNode> $result */
+        /** @var array<PrintableNode> $result */
         $result = \is_array($result) ? $result : [$result];
 
-        return new SampleNode($token->getOffset(), $context->getState(), $result);
+        return new PrintableNode($token->getOffset(), $context->getState(), $result);
     }
 }
