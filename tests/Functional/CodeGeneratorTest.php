@@ -2,17 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Phplrt\Compiler\Tests;
+namespace Phplrt\Compiler\Tests\Functional;
 
 use Phplrt\Compiler\Compiler;
 use Phplrt\Parser\Parser;
+use PHPUnit\Framework\Attributes\Group;
 
-class CodeGeneratorTestCase extends TestCase
+#[Group('phplrt/compiler'), Group('functional')]
+class CodeGeneratorTest extends TestCase
 {
-    /**
-     * @return void
-     * @throws \Throwable
-     */
     public function testOutput(): void
     {
         $generator = (new Compiler())
@@ -25,10 +23,6 @@ class CodeGeneratorTestCase extends TestCase
         $this->assertSame($source, $this->formatText($generator->generate()));
     }
 
-    /**
-     * @param string $text
-     * @return string
-     */
     private function formatText(string $text): string
     {
         $lines = \explode("\n", \trim($text));
