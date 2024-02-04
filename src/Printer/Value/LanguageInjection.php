@@ -25,6 +25,6 @@ class LanguageInjection implements PrintableValueInterface
     {
         $pattern = \sprintf('/%s\b/isum', \preg_quote($value, '/'));
 
-        return (bool)\preg_match($pattern, $this->code);
+        return (bool) \preg_match($pattern, $this->code);
     }
 }

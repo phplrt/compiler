@@ -150,7 +150,7 @@ final class PhpCodeGenerator extends CodeGenerator
 
     private function getGrammar(): array
     {
-        $map = static fn (RuleInterface $rule): PrintableValueInterface
+        $map = static fn(RuleInterface $rule): PrintableValueInterface
             => new PhpRuleInstantiation($rule);
 
         return \array_map($map, $this->analyzer->rules);
@@ -167,7 +167,7 @@ final class PhpCodeGenerator extends CodeGenerator
 
     private function getReducers(): array
     {
-        $map = static fn (string $code): PrintableValueInterface
+        $map = static fn(string $code): PrintableValueInterface
             => new PhpLanguageInjection($code);
 
         return \array_map($map, $this->analyzer->reducers);

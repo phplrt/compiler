@@ -96,7 +96,7 @@ class CompilerContext extends Visitor
     public function enter(NodeInterface $node): void
     {
         if ($node instanceof TokenDef) {
-            $state = $node->state ?: self::STATE_DEFAULT;
+            $state = $node->state ?? self::STATE_DEFAULT;
 
             if (!\array_key_exists($state, $this->tokens)) {
                 $this->tokens[$state] = [];
@@ -104,7 +104,7 @@ class CompilerContext extends Visitor
 
             $this->tokens[$state][$node->name] = $node->value;
 
-            if ($node->next) {
+            if ($node->next !== null) {
                 $this->transitions[$state][$node->name] = $node->next;
             }
 
@@ -242,7 +242,7 @@ class CompilerContext extends Visitor
     }
 
     /**
-     * @return list<int|string>
+     * @return non-empty-list<array-key>
      */
     private function loadForAlternation(AlternationStmt $choice): array
     {
@@ -258,6 +258,7 @@ class CompilerContext extends Visitor
             }
         }
 
+        /** @var non-empty-list<array-key> */
         return $choices;
     }
 
@@ -273,6 +274,7 @@ class CompilerContext extends Visitor
     private function load(Statement|string|int|array $stmt): string|int|array
     {
         if (\is_array($stmt)) {
+            /** @psalm-suppress InvalidArgument */
             return $this->mapAll($this->reduceAll($stmt));
         }
 
@@ -280,9 +282,9 @@ class CompilerContext extends Visitor
     }
 
     /**
-     * @param RuleInterface $rules
+     * @param list<RuleInterface> $rules
      *
-     * @return RuleInterface
+     * @return list<int|string>
      */
     private function mapAll(array $rules): array
     {
@@ -296,9 +298,9 @@ class CompilerContext extends Visitor
     }
 
     /**
-     * @param RuleInterface $statements
+     * @param list<Statement> $statements
      *
-     * @return RuleInterface
+     * @return list<int|string|RuleInterface>
      * @throws NotAccessibleException
      * @throws ParserRuntimeException
      * @throws \RuntimeException
