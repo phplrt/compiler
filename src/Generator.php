@@ -101,7 +101,7 @@ class Generator implements \Stringable
             $rule instanceof Alternation, $rule instanceof Concatenation => $this->newRule($depth, $rule, [$rule->sequence]),
             $rule instanceof Lexeme => $this->newRule($depth, $rule, [$rule->token, $rule->keep]),
             $rule instanceof Optional => $this->newRule($depth, $rule, [$rule->rule]),
-            $rule instanceof Repetition => $this->newRule($depth, $rule, [$rule->rule, $rule->gte, $rule->lte]),
+            $rule instanceof Repetition => $this->newRule($depth, $rule, [$rule->rule, $rule->from, $rule->to]),
             default => $this->newRule($depth, $rule, []),
         };
     }
