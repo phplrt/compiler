@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Phplrt\Compiler\Ast\Stmt;
+namespace Phplrt\Compiler\Node\Statement;
 
 /**
  * @internal This is an internal class, please do not use it in your application code.
  * @psalm-internal Phplrt\Compiler
  * @psalm-suppress PropertyNotSetInConstructor
  */
-class TokenStmt extends Statement
+class RuleNode extends Statement
 {
     /**
      * @var non-empty-string
@@ -19,9 +19,9 @@ class TokenStmt extends Statement
     /**
      * @param non-empty-string $name
      */
-    public function __construct(string $name, public bool $keep)
+    public function __construct(string $name)
     {
-        assert($name !== '', 'Token name must not be empty');
+        assert($name !== '', 'Rule name must not be empty');
 
         $this->name = $name;
     }

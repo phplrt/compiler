@@ -2,19 +2,22 @@
 
 declare(strict_types=1);
 
-namespace Phplrt\Compiler\Ast\Stmt;
+namespace Phplrt\Compiler\Node\Statement;
 
 /**
  * @internal This is an internal class, please do not use it in your application code.
  * @psalm-internal Phplrt\Compiler
  * @psalm-suppress PropertyNotSetInConstructor
  */
-class RepetitionStmt extends Statement
+class RepetitionNode extends Statement
 {
-    public function __construct(public Statement $statement, public Quantifier $quantifier) {}
+    public function __construct(
+        public Statement $statement,
+        public RepetitionQuantifierNode $quantifier,
+    ) {}
 
     /**
-     * @return \Traversable<non-empty-string, Statement|Quantifier>
+     * @return \Traversable<non-empty-string, Statement|RepetitionQuantifierNode>
      */
     public function getIterator(): \Traversable
     {

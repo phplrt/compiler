@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Phplrt\Compiler\Ast\Stmt;
+namespace Phplrt\Compiler\Node\Statement;
 
-use Phplrt\Compiler\Ast\Node;
+use Phplrt\Compiler\Node\Node;
 
 /**
  * @internal This is an internal class, please do not use it in your application code.
  * @psalm-internal Phplrt\Compiler
  * @psalm-suppress PropertyNotSetInConstructor
  */
-class Quantifier extends Node
+class RepetitionQuantifierNode extends Node
 {
     /**
      * @var int<0, max>
@@ -21,7 +21,7 @@ class Quantifier extends Node
     /**
      * @var int<0, max>|float
      */
-    public $to;
+    public int|float $to;
 
     /**
      * @param int<0, max> $from

@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Phplrt\Compiler\Compiler;
 
-use Phplrt\Compiler\Ast\Def\PragmaDef;
-use Phplrt\Compiler\Ast\Def\RuleDef;
-use Phplrt\Compiler\Ast\Def\TokenDef;
-use Phplrt\Compiler\Ast\Stmt\AlternationStmt;
-use Phplrt\Compiler\Ast\Stmt\ConcatenationStmt;
-use Phplrt\Compiler\Ast\Stmt\PatternStmt;
-use Phplrt\Compiler\Ast\Stmt\RepetitionStmt;
-use Phplrt\Compiler\Ast\Stmt\RuleStmt;
-use Phplrt\Compiler\Ast\Stmt\Statement;
-use Phplrt\Compiler\Ast\Stmt\TokenStmt;
+use Phplrt\Compiler\Node\Definition\PragmaDefinitionNode;
+use Phplrt\Compiler\Node\Definition\RuleDefinitionNode;
+use Phplrt\Compiler\Node\Definition\TokenDefinitionNode;
+use Phplrt\Compiler\Node\Statement\AlternationNode;
+use Phplrt\Compiler\Node\Statement\ConcatenationNode;
+use Phplrt\Compiler\Node\Statement\PatternNode;
+use Phplrt\Compiler\Node\Statement\RepetitionNode;
+use Phplrt\Compiler\Node\Statement\RuleNode;
+use Phplrt\Compiler\Node\Statement\Statement;
+use Phplrt\Compiler\Node\Statement\TokenNode;
 use Phplrt\Compiler\Exception\GrammarException;
 use Phplrt\Contracts\Ast\NodeInterface;
 use Phplrt\Parser\Exception\ParserRuntimeException;
@@ -95,7 +95,7 @@ class CompilerContext extends Visitor
      */
     public function enter(NodeInterface $node): void
     {
-        if ($node instanceof TokenDef) {
+        if ($node instanceof TokenDefinitionNode) {
             $state = $node->state ?? self::STATE_DEFAULT;
 
             if (!\array_key_exists($state, $this->tokens)) {
@@ -113,7 +113,7 @@ class CompilerContext extends Visitor
             }
         }
 
-        if ($node instanceof PatternStmt) {
+        if ($node instanceof PatternNode) {
             $lexemes = \array_reverse($this->tokens[self::STATE_DEFAULT]);
             $lexemes[$node->name] = $node->pattern;
 
@@ -128,7 +128,7 @@ class CompilerContext extends Visitor
      */
     public function leave(NodeInterface $node): void
     {
-        if ($node instanceof PragmaDef) {
+        if ($node instanceof PragmaDefinitionNode) {
             if ($node->name !== self::PRAGMA_ROOT) {
                 $error = 'Unrecognized pragma "%s"';
                 throw new GrammarException(\sprintf($error, $node->name), $node->file, $node->offset);
@@ -137,7 +137,7 @@ class CompilerContext extends Visitor
             $this->initial = $this->name($node->value);
         }
 
-        if ($node instanceof RuleDef) {
+        if ($node instanceof RuleDefinitionNode) {
             $id = $this->register($this->rule($node), $node->name);
 
             if ($node->delegate->code !== null) {
@@ -189,7 +189,7 @@ class CompilerContext extends Visitor
      * @throws ParserRuntimeException
      * @throws \RuntimeException
      */
-    private function rule(RuleDef $def): RuleInterface
+    private function rule(RuleDefinitionNode $def): RuleInterface
     {
         $rule = $this->reduce($def->body);
 
@@ -210,10 +210,10 @@ class CompilerContext extends Visitor
     private function reduce(Statement $statement): RuleInterface|string|int
     {
         switch (true) {
-            case $statement instanceof AlternationStmt:
+            case $statement instanceof AlternationNode:
                 return new Alternation($this->loadForAlternation($statement));
 
-            case $statement instanceof RepetitionStmt:
+            case $statement instanceof RepetitionNode:
                 $info = $statement->quantifier;
 
                 if ($info->from === 0 && $info->to === 1) {
@@ -222,16 +222,16 @@ class CompilerContext extends Visitor
 
                 return new Repetition($this->load($statement->statement), $info->from, $info->to);
 
-            case $statement instanceof ConcatenationStmt:
+            case $statement instanceof ConcatenationNode:
                 return new Concatenation($this->load($statement->statements));
 
-            case $statement instanceof PatternStmt:
+            case $statement instanceof PatternNode:
                 return new Lexeme($statement->name, false);
 
-            case $statement instanceof TokenStmt:
+            case $statement instanceof TokenNode:
                 return $this->tokenRelation($statement);
 
-            case $statement instanceof RuleStmt:
+            case $statement instanceof RuleNode:
                 return $this->ruleRelation($statement);
 
             default:
@@ -244,7 +244,7 @@ class CompilerContext extends Visitor
     /**
      * @return non-empty-list<array-key>
      */
-    private function loadForAlternation(AlternationStmt $choice): array
+    private function loadForAlternation(AlternationNode $choice): array
     {
         $choices = [];
 
@@ -320,7 +320,7 @@ class CompilerContext extends Visitor
      * @throws NotAccessibleException
      * @throws \RuntimeException
      */
-    private function tokenRelation(TokenStmt $token): Lexeme
+    private function tokenRelation(TokenNode $token): Lexeme
     {
         if ($this->ids->lexeme($token->name) === null) {
             $error = \sprintf('Token "%s" has not been defined', $token->name);
@@ -336,7 +336,7 @@ class CompilerContext extends Visitor
      * @throws NotAccessibleException
      * @throws \RuntimeException
      */
-    private function ruleRelation(RuleStmt $rule): int|string
+    private function ruleRelation(RuleNode $rule): int|string
     {
         if ($this->ids->rule($rule->name) === null) {
             $error = \sprintf('Rule "%s" has not been defined', $rule->name);

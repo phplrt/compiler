@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phplrt\Compiler\Ast\Expr;
+namespace Phplrt\Compiler\Node\Expression;
 
 use Phplrt\Contracts\Source\FileInterface;
 
@@ -11,7 +11,7 @@ use Phplrt\Contracts\Source\FileInterface;
  * @psalm-internal Phplrt\Compiler
  * @psalm-suppress PropertyNotSetInConstructor
  */
-class IncludeExpr extends Expression
+class IncludeNode extends Expression
 {
     /**
      * @var non-empty-string

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phplrt\Compiler;
 
-use Phplrt\Compiler\Ast\Node;
+use Phplrt\Compiler\Node\Node;
 use Phplrt\Compiler\Compiler\CompilerContext;
 use Phplrt\Compiler\Compiler\IdCollection;
 use Phplrt\Compiler\Exception\GrammarException;

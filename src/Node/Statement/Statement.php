@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Phplrt\Compiler\Ast\Def;
+namespace Phplrt\Compiler\Node\Statement;
 
-use Phplrt\Compiler\Ast\Node;
+use Phplrt\Compiler\Node\Node;
 
 /**
  * @internal This is an internal class, please do not use it in your application code.
  * @psalm-internal Phplrt\Compiler
  */
-abstract class Definition extends Node {}
+abstract class Statement extends Node {}

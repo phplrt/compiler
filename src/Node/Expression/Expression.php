@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phplrt\Compiler\Ast\Expr;
+namespace Phplrt\Compiler\Node\Expression;
 
-use Phplrt\Compiler\Ast\Node;
+use Phplrt\Compiler\Node\Node;
 
 /**
  * @internal This is an internal class, please do not use it in your application code.

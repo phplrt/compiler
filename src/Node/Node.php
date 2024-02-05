@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phplrt\Compiler\Ast;
+namespace Phplrt\Compiler\Node;
 
 use Phplrt\Contracts\Ast\NodeInterface;
 use Phplrt\Contracts\Source\ReadableInterface;

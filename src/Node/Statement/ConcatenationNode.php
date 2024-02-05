@@ -2,19 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Phplrt\Compiler\Ast\Stmt;
+namespace Phplrt\Compiler\Node\Statement;
 
 /**
  * @internal This is an internal class, please do not use it in your application code.
  * @psalm-internal Phplrt\Compiler
  * @psalm-suppress PropertyNotSetInConstructor
  */
-class AlternationStmt extends Statement
+class ConcatenationNode extends Statement
 {
     /**
-     * @param array<Statement> $statements
+     * @param non-empty-list<Statement> $statements
      */
-    public function __construct(public array $statements) {}
+    public function __construct(
+        public array $statements,
+    ) {}
 
     /**
      * @return \Traversable<non-empty-string, array<Statement>>

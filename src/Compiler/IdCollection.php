@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phplrt\Compiler\Compiler;
 
-use Phplrt\Compiler\Ast\Def\RuleDef;
-use Phplrt\Compiler\Ast\Def\TokenDef;
+use Phplrt\Compiler\Node\Definition\RuleDefinitionNode;
+use Phplrt\Compiler\Node\Definition\TokenDefinitionNode;
 use Phplrt\Contracts\Ast\NodeInterface;
 use Phplrt\Visitor\Visitor;
 
@@ -27,11 +27,11 @@ class IdCollection extends Visitor
 
     public function enter(NodeInterface $node): void
     {
-        if ($node instanceof RuleDef) {
+        if ($node instanceof RuleDefinitionNode) {
             $this->rules[$node->name] = $node->keep;
         }
 
-        if ($node instanceof TokenDef) {
+        if ($node instanceof TokenDefinitionNode) {
             $this->tokens[$node->name] = $node->keep;
         }
     }

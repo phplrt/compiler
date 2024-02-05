@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phplrt\Compiler;
 
-use Phplrt\Compiler\Ast\Node;
+use Phplrt\Compiler\Node\Node;
 use Phplrt\Visitor\Visitor;
 use Phplrt\Contracts\Ast\NodeInterface;
-use Phplrt\Compiler\Ast\Expr\IncludeExpr;
+use Phplrt\Compiler\Node\Expression\IncludeNode;
 use Phplrt\Compiler\Exception\GrammarException;
 use Phplrt\Source\Exception\NotAccessibleException;
 
@@ -35,7 +35,7 @@ class IncludesExecutor extends Visitor
      */
     public function leave(NodeInterface $node): array|\Phplrt\Contracts\Ast\NodeInterface
     {
-        if ($node instanceof IncludeExpr) {
+        if ($node instanceof IncludeNode) {
             return $this->lookup($node);
         }
 
@@ -48,7 +48,7 @@ class IncludesExecutor extends Visitor
      * @psalm-suppress InvalidReturnType
      * @psalm-suppress InvalidReturnStatement
      */
-    private function lookup(IncludeExpr $expr): array
+    private function lookup(IncludeNode $expr): array
     {
         $pathname = $expr->getTargetPathname();
 
