@@ -12,6 +12,6 @@ namespace Phplrt\Compiler\Node\Statement;
 class LanguageInjection extends Statement
 {
     public function __construct(
-        public string $code,
+        public ?string $code,
     ) {}
 }

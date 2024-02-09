@@ -12,12 +12,9 @@ use Phplrt\Source\Exception\NotAccessibleException;
 
 class PP2PHPLexer implements LexerInterface
 {
-    /**
-     * @var int<0, max>
-     */
-    private int $depth = 0;
-
-    public function __construct(private PhpLexer $lexer) {}
+    public function __construct(
+        private readonly PhpLexer $lexer,
+    ) {}
 
     /**
      * @param resource|string|ReadableInterface $source
@@ -28,22 +25,22 @@ class PP2PHPLexer implements LexerInterface
      */
     public function lex($source, int $offset = 0): iterable
     {
-        $this->depth = 0;
+        $depth = 0;
 
         $children = [];
         $value  = '';
 
         foreach ($this->lexer->lex($source, $offset) as $inner) {
             if ($inner->getName() === '{') {
-                ++$this->depth;
+                ++$depth;
             }
 
             if ($inner->getName() === '}') {
                 /** @psalm-suppress PossiblyInvalidPropertyAssignmentValue */
-                --$this->depth;
+                --$depth;
             }
 
-            if ($this->depth < 0) {
+            if ($depth < 0) {
                 break;
             }
 

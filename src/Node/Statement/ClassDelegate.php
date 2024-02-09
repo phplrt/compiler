@@ -9,7 +9,7 @@ namespace Phplrt\Compiler\Node\Statement;
  * @psalm-internal Phplrt\Compiler
  * @psalm-suppress PropertyNotSetInConstructor
  */
-final class ClassLanguageInjection extends LanguageInjection
+final class ClassDelegate extends LanguageInjection
 {
     /**
      * @param class-string $class

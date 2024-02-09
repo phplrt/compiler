@@ -10,7 +10,7 @@ use Phplrt\Compiler\Node\Definition\TokenDefinitionNode;
 use Phplrt\Compiler\Node\Expression\IncludeNode;
 use Phplrt\Compiler\Node\Node;
 use Phplrt\Compiler\Node\Statement\AlternationNode;
-use Phplrt\Compiler\Node\Statement\ClassLanguageInjection;
+use Phplrt\Compiler\Node\Statement\ClassDelegate;
 use Phplrt\Compiler\Node\Statement\ConcatenationNode;
 use Phplrt\Compiler\Node\Statement\LanguageInjection;
 use Phplrt\Compiler\Node\Statement\PatternNode;
@@ -79,7 +79,7 @@ class PP2Grammar implements GrammarInterface, BuilderInterface
                     return new LanguageInjection(\trim((string) $delegate->getValue(), "\r\n"));
                 }
 
-                return new ClassLanguageInjection($delegate->getValue());
+                return new ClassDelegate($delegate->getValue());
             },
             14 => static function (Composite $include): NodeInterface {
                 return new IncludeNode($include[0]->getValue());
@@ -194,10 +194,10 @@ class PP2Grammar implements GrammarInterface, BuilderInterface
             10 => new Alternation([18, 19]),
             11 => new Alternation([15, 16, 13, 14, 17]),
             12 => new Concatenation([25, 27]),
-            13 => new Lexeme('T_PRAGMA'),
-            14 => new Lexeme('T_INCLUDE'),
-            15 => new Lexeme('T_TOKEN_DEF'),
-            16 => new Lexeme('T_SKIP_DEF'),
+            13 => new Lexeme(PP2Lexer::T_PRAGMA),
+            14 => new Lexeme(PP2Lexer::T_INCLUDE),
+            15 => new Lexeme(PP2Lexer::T_TOKEN_DEF),
+            16 => new Lexeme(PP2Lexer::T_SKIP_DEF),
             17 => new Concatenation([10, 20, 28, 8, 9]),
             18 => new Concatenation([26, 27]),
             19 => new Concatenation([27]),
@@ -206,28 +206,28 @@ class PP2Grammar implements GrammarInterface, BuilderInterface
             22 => new Repetition(3, 2),
             23 => new Concatenation([35, 7, 36]),
             24 => new Concatenation([5, 6]),
-            25 => new Lexeme('T_ARROW_RIGHT', false),
-            26 => new Lexeme('T_KEPT_NAME', false),
-            27 => new Lexeme('T_NAME'),
-            28 => new Lexeme('T_EQ', false),
-            29 => new Lexeme('T_END_OF_RULE', false),
-            30 => new Lexeme('T_OR', false),
-            31 => new Lexeme('T_TOKEN_SKIPPED'),
-            32 => new Lexeme('T_TOKEN_KEPT'),
-            33 => new Lexeme('T_TOKEN_STRING'),
-            34 => new Lexeme('T_INVOKE'),
-            35 => new Lexeme('T_GROUP_OPEN', false),
-            36 => new Lexeme('T_GROUP_CLOSE', false),
-            37 => new Lexeme('T_REPEAT_ZERO_OR_ONE'),
-            38 => new Lexeme('T_REPEAT_ONE_OR_MORE'),
-            39 => new Lexeme('T_REPEAT_ZERO_OR_MORE'),
-            40 => new Lexeme('T_REPEAT_N_TO_M'),
-            41 => new Lexeme('T_REPEAT_ZERO_TO_M'),
-            42 => new Lexeme('T_REPEAT_N_OR_MORE'),
-            43 => new Lexeme('T_REPEAT_EXACTLY_N'),
+            25 => new Lexeme(PP2Lexer::T_ARROW_RIGHT, false),
+            26 => new Lexeme(PP2Lexer::T_KEPT_NAME, false),
+            27 => new Lexeme(PP2Lexer::T_NAME),
+            28 => new Lexeme(PP2Lexer::T_EQ, false),
+            29 => new Lexeme(PP2Lexer::T_END_OF_RULE, false),
+            30 => new Lexeme(PP2Lexer::T_OR, false),
+            31 => new Lexeme(PP2Lexer::T_TOKEN_SKIPPED),
+            32 => new Lexeme(PP2Lexer::T_TOKEN_KEPT),
+            33 => new Lexeme(PP2Lexer::T_TOKEN_STRING),
+            34 => new Lexeme(PP2Lexer::T_INVOKE),
+            35 => new Lexeme(PP2Lexer::T_GROUP_OPEN, false),
+            36 => new Lexeme(PP2Lexer::T_GROUP_CLOSE, false),
+            37 => new Lexeme(PP2Lexer::T_REPEAT_ZERO_OR_ONE),
+            38 => new Lexeme(PP2Lexer::T_REPEAT_ONE_OR_MORE),
+            39 => new Lexeme(PP2Lexer::T_REPEAT_ZERO_OR_MORE),
+            40 => new Lexeme(PP2Lexer::T_REPEAT_N_TO_M),
+            41 => new Lexeme(PP2Lexer::T_REPEAT_ZERO_TO_M),
+            42 => new Lexeme(PP2Lexer::T_REPEAT_N_OR_MORE),
+            43 => new Lexeme(PP2Lexer::T_REPEAT_EXACTLY_N),
             44 => new Concatenation([45, 47, 46]),
-            45 => new Lexeme('T_PHP_OPEN', false),
-            46 => new Lexeme('T_PHP_CLOSE', false),
+            45 => new Lexeme(PP2Lexer::T_PHP_OPEN, false),
+            46 => new Lexeme(PP2Lexer::T_PHP_CLOSE, false),
             47 => new Lexeme('T_PHP_CODE'),
             48 => new Alternation([12, 44]),
         ];
