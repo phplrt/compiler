@@ -12,9 +12,17 @@ use Phplrt\Source\Exception\NotAccessibleException;
 
 class PP2PHPLexer implements LexerInterface
 {
-    public function __construct(
-        private readonly PhpLexer $lexer,
-    ) {}
+    private PhpLexer $lexer;
+
+    /**
+     * @var int<0, max>
+     */
+    private int $depth = 0;
+
+    public function __construct(PhpLexer $lexer)
+    {
+        $this->lexer = $lexer;
+    }
 
     /**
      * @param resource|string|ReadableInterface $source
@@ -23,24 +31,24 @@ class PP2PHPLexer implements LexerInterface
      * @throws NotAccessibleException
      * @throws \RuntimeException
      */
-    public function lex($source, int $offset = 0, int $length = null): iterable
+    public function lex($source, int $offset = 0): iterable
     {
-        $depth = 0;
+        $this->depth = 0;
 
         $children = [];
         $value  = '';
 
         foreach ($this->lexer->lex($source, $offset) as $inner) {
             if ($inner->getName() === '{') {
-                ++$depth;
+                ++$this->depth;
             }
 
             if ($inner->getName() === '}') {
                 /** @psalm-suppress PossiblyInvalidPropertyAssignmentValue */
-                --$depth;
+                --$this->depth;
             }
 
-            if ($depth < 0) {
+            if ($this->depth < 0) {
                 break;
             }
 
@@ -48,6 +56,6 @@ class PP2PHPLexer implements LexerInterface
             $value .= $inner->getValue();
         }
 
-        yield new Composite($children, 'T_PHP_CODE', $value, $offset);
+        yield new Composite('T_PHP_CODE', $value, $offset, $children);
     }
 }

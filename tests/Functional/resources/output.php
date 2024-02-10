@@ -1,35 +1,34 @@
 <?php
 
-declare(strict_types=1);
-
 use Phplrt\Parser\Parser;
 
 return [
     'initial' => 3,
     'tokens' => [
-        'd' => '\\d+',
-        'p' => '\\+',
-        'ws' => '\\s+',
+        'default' => [
+            'd' => '\\d+',
+            'p' => '\\+',
+            'ws' => '\\s+',
+        ],
     ],
     'skip' => [
         'ws',
     ],
+    'transitions' => [
+
+    ],
     'grammar' => [
-        new \Phplrt\Parser\Grammar\Concatenation([4, 5]),
-        new \Phplrt\Parser\Grammar\Lexeme('d', true),
-        new \Phplrt\Parser\Grammar\Repetition(0, 1, INF),
-        new \Phplrt\Parser\Grammar\Concatenation([1, 2]),
-        new \Phplrt\Parser\Grammar\Lexeme('p', false),
-        new \Phplrt\Parser\Grammar\Lexeme('d', true),
+        1 => new \Phplrt\Parser\Grammar\Lexeme('d', true),
+        2 => new \Phplrt\Parser\Grammar\Repetition(0, 1, INF),
+        3 => new \Phplrt\Parser\Grammar\Concatenation([1, 2]),
+        4 => new \Phplrt\Parser\Grammar\Lexeme('p', false),
+        5 => new \Phplrt\Parser\Grammar\Lexeme('d', true),
+        0 => new \Phplrt\Parser\Grammar\Concatenation([4, 5])
     ],
     'reducers' => [
-        0 => static function (\Phplrt\Parser\Context $ctx, mixed $children): void {
-            dump($children);
-        },
-        3 => static function (\Phplrt\Parser\Context $ctx, mixed $children): mixed {
-            // The "$offset" variable is an auto-generated
-            $offset = $ctx->lastProcessedToken->getOffset();
-
+        3 => function (\Phplrt\Parser\Context $ctx, $children) {
+            $token = $ctx->getToken();
+            $offset = $token->getOffset();
             dump($offset);
 
             foreach ($children as $child) {
@@ -38,5 +37,8 @@ return [
 
             return $children;
         },
-    ],
+        0 => function (\Phplrt\Parser\Context $ctx, $children) {
+            dump($children);
+        }
+    ]
 ];

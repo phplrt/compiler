@@ -6,9 +6,7 @@ namespace Phplrt\Compiler\Tests\Functional;
 
 use Phplrt\Compiler\Compiler;
 use Phplrt\Parser\Parser;
-use PHPUnit\Framework\Attributes\Group;
 
-#[Group('phplrt/compiler'), Group('functional')]
 class CodeGeneratorTest extends TestCase
 {
     public function testOutput(): void
@@ -16,7 +14,7 @@ class CodeGeneratorTest extends TestCase
         $generator = (new Compiler())
             ->load(\file_get_contents(__DIR__ . '/resources/input.pp2'))
             ->build()
-            ->withClassReference(Parser::class);
+            ->withClassUsage(Parser::class);
 
         $source = $this->formatText(\file_get_contents(__DIR__ . '/resources/output.php'));
 

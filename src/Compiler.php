@@ -4,46 +4,51 @@ declare(strict_types=1);
 
 namespace Phplrt\Compiler;
 
-use Phplrt\Compiler\Node\Node;
-use Phplrt\Compiler\Compiler\CompilerContext;
-use Phplrt\Compiler\Compiler\IdCollection;
+use Phplrt\Compiler\Ast\Node;
 use Phplrt\Compiler\Exception\GrammarException;
-use Phplrt\Compiler\Generator\PhpCodeGenerator;
 use Phplrt\Compiler\Grammar\GrammarInterface;
 use Phplrt\Compiler\Grammar\PP2Grammar;
-use Phplrt\Compiler\Runtime\SimpleParser;
+use Phplrt\Compiler\Renderer\LaminasRenderer;
 use Phplrt\Contracts\Ast\NodeInterface;
 use Phplrt\Contracts\Exception\RuntimeExceptionInterface;
+use Phplrt\Contracts\Lexer\LexerInterface;
 use Phplrt\Contracts\Parser\ParserInterface;
 use Phplrt\Contracts\Source\ReadableInterface;
-use Phplrt\Contracts\Source\SourceFactoryInterface;
-use Phplrt\Source\SourceFactory;
+use Phplrt\Lexer\Lexer;
+use Phplrt\Lexer\Multistate;
+use Phplrt\Parser\Parser;
+use Phplrt\Parser\ParserConfigsInterface;
+use Phplrt\Source\File;
 use Phplrt\Visitor\Traverser;
 use Phplrt\Visitor\TraverserInterface;
 
-class Compiler implements ParserInterface, \Stringable
+class Compiler implements ParserInterface
 {
-    private readonly IdCollection $ids;
+    private GrammarInterface $grammar;
 
-    private readonly CompilerContext $context;
+    private Analyzer $analyzer;
 
-    private readonly TraverserInterface $preloader;
+    private TraverserInterface $preloader;
 
-    public function __construct(
-        private readonly GrammarInterface $grammar = new PP2Grammar(),
-        private readonly SourceFactoryInterface $sources = new SourceFactory(),
-    ) {
-        $this->ids = new IdCollection();
+    /**
+     * @param GrammarInterface|null $grammar
+     */
+    public function __construct(GrammarInterface $grammar = null)
+    {
+        $this->grammar = $grammar ?? new PP2Grammar();
 
-        $this->preloader = $this->bootPreloader($this->ids);
-        $this->context = new CompilerContext($this->ids);
+        $this->preloader = $this->bootPreloader($ids = new IdCollection());
+        $this->analyzer = new Analyzer($ids);
     }
 
+    /**
+     * @psalm-suppress MixedArgumentTypeCoercion: Allow impure closure as traverser
+     */
     private function bootPreloader(IdCollection $ids): TraverserInterface
     {
         return (new Traverser())
             ->with(new IncludesExecutor(function (string $pathname): iterable {
-                return $this->parseGrammar($this->sources->createFromFile($pathname));
+                return $this->run(File::fromPathname($pathname));
             }))
             ->with($ids);
     }
@@ -55,7 +60,7 @@ class Compiler implements ParserInterface, \Stringable
      * @psalm-suppress MoreSpecificReturnType
      * @psalm-suppress LessSpecificReturnStatement
      */
-    private function parseGrammar(ReadableInterface $source): iterable
+    private function run(ReadableInterface $source): iterable
     {
         try {
             $ast = $this->grammar->parse($source);
@@ -64,45 +69,65 @@ class Compiler implements ParserInterface, \Stringable
         } catch (GrammarException $e) {
             throw $e;
         } catch (RuntimeExceptionInterface $e) {
-            $token = $e->getToken();
-
-            throw new GrammarException($e->getMessage(), $source, $token->getOffset());
+            throw new GrammarException($e->getMessage(), $source, $e->getToken()->getOffset());
         }
     }
 
-    public function parse(mixed $source): iterable
+    /**
+     * {@inheritDoc}
+     * @throws \Throwable
+     */
+    public function parse($source): iterable
     {
-        $parser = new SimpleParser($this->context);
+        $lexer = $this->createLexer();
+
+        $parser = new Parser($lexer, $this->analyzer->rules, [
+            ParserConfigsInterface::CONFIG_INITIAL_RULE => $this->analyzer->initial,
+            ParserConfigsInterface::CONFIG_AST_BUILDER  => new AstBuilder(),
+        ]);
 
         return $parser->parse($source);
     }
 
-    public function load(mixed $source): self
+    private function createLexer(): LexerInterface
+    {
+        if (\count($this->analyzer->tokens) === 1) {
+            return new Lexer($this->analyzer->tokens[Analyzer::STATE_DEFAULT], $this->analyzer->skip);
+        }
+
+        $states = [];
+
+        foreach ($this->analyzer->tokens as $state => $tokens) {
+            $states[$state] = new Lexer($tokens, $this->analyzer->skip);
+        }
+
+        return new Multistate($states, $this->analyzer->transitions);
+    }
+
+    /**
+     * @param string|resource|ReadableInterface $source
+     * @return Compiler|$this
+     * @throws \Throwable
+     */
+    public function load($source): self
     {
         /** @var iterable<NodeInterface> $ast */
-        $ast = $this->parseGrammar($this->sources->create($source));
+        $ast = $this->run(File::new($source));
 
         (new Traverser())
-            ->with($this->context)
+            ->with($this->analyzer)
             ->traverse($ast);
 
         return $this;
     }
 
-    public function getContext(): CompilerContext
+    public function getAnalyzer(): Analyzer
     {
-        return $this->context;
+        return $this->analyzer;
     }
 
-    public function build(): PhpCodeGenerator
+    public function build(): Generator
     {
-        return new PhpCodeGenerator($this->context);
-    }
-
-    public function __toString(): string
-    {
-        $generator = $this->build();
-
-        return $generator->generate();
+        return new Generator($this->analyzer, new LaminasRenderer());
     }
 }

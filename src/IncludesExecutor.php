@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phplrt\Compiler;
 
-use Phplrt\Compiler\Node\Node;
+use Phplrt\Compiler\Ast\Node;
 use Phplrt\Visitor\Visitor;
 use Phplrt\Contracts\Ast\NodeInterface;
-use Phplrt\Compiler\Node\Expression\IncludeNode;
+use Phplrt\Compiler\Ast\Expr\IncludeExpr;
 use Phplrt\Compiler\Exception\GrammarException;
 use Phplrt\Source\Exception\NotAccessibleException;
 
@@ -24,18 +24,26 @@ class IncludesExecutor extends Visitor
     private const FILE_EXTENSIONS = ['', '.pp2', '.pp'];
 
     /**
+     * @var \Closure(non-empty-string):iterable<Node>
+     */
+    private \Closure $loader;
+
+    /**
      * @param \Closure(non-empty-string):iterable<Node> $loader
      */
-    public function __construct(private \Closure $loader) {}
+    public function __construct(\Closure $loader)
+    {
+        $this->loader = $loader;
+    }
 
     /**
      * @return mixed|null
      * @throws NotAccessibleException
      * @throws \RuntimeException
      */
-    public function leave(NodeInterface $node): array|\Phplrt\Contracts\Ast\NodeInterface
+    public function leave(NodeInterface $node)
     {
-        if ($node instanceof IncludeNode) {
+        if ($node instanceof IncludeExpr) {
             return $this->lookup($node);
         }
 
@@ -48,7 +56,7 @@ class IncludesExecutor extends Visitor
      * @psalm-suppress InvalidReturnType
      * @psalm-suppress InvalidReturnStatement
      */
-    private function lookup(IncludeNode $expr): array
+    private function lookup(IncludeExpr $expr): array
     {
         $pathname = $expr->getTargetPathname();
 

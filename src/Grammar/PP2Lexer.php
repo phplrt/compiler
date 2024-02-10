@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Phplrt\Compiler\Grammar;
 
-use Phplrt\Lexer\Decorator;
 use Phplrt\Lexer\Lexer;
 
-final class PP2Lexer extends Decorator
+final class PP2Lexer extends Lexer
 {
     /**
      * @var string
@@ -198,10 +197,7 @@ final class PP2Lexer extends Decorator
 
     public function __construct()
     {
-        parent::__construct(new Lexer(
-            tokens: self::LEXER_TOKENS,
-            skip: self::LEXER_SKIPPED_TOKENS,
-            composite: true,
-        ));
+        /** @psalm-suppress ArgumentTypeCoercion */
+        parent::__construct(self::LEXER_TOKENS, self::LEXER_SKIPPED_TOKENS);
     }
 }
