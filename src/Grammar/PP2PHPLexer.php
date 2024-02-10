@@ -23,7 +23,7 @@ class PP2PHPLexer implements LexerInterface
      * @throws NotAccessibleException
      * @throws \RuntimeException
      */
-    public function lex($source, int $offset = 0): iterable
+    public function lex($source, int $offset = 0, int $length = null): iterable
     {
         $depth = 0;
 
@@ -48,6 +48,6 @@ class PP2PHPLexer implements LexerInterface
             $value .= $inner->getValue();
         }
 
-        yield new Composite('T_PHP_CODE', $value, $offset, $children);
+        yield new Composite($children, 'T_PHP_CODE', $value, $offset);
     }
 }

@@ -18,7 +18,6 @@ use Phplrt\Compiler\Node\Statement\RepetitionQuantifierNode;
 use Phplrt\Compiler\Node\Statement\RepetitionNode;
 use Phplrt\Compiler\Node\Statement\RuleNode;
 use Phplrt\Compiler\Node\Statement\TokenNode;
-use Phplrt\Contracts\Ast\NodeInterface;
 use Phplrt\Contracts\Lexer\TokenInterface;
 use Phplrt\Lexer\Multistate;
 use Phplrt\Lexer\Token\Composite;
@@ -31,7 +30,6 @@ use Phplrt\Parser\Grammar\Optional;
 use Phplrt\Parser\Grammar\Repetition;
 use Phplrt\Parser\Grammar\RuleInterface;
 use Phplrt\Parser\Parser;
-use Phplrt\Parser\ParserConfigsInterface;
 
 class PP2Grammar implements GrammarInterface, BuilderInterface
 {
@@ -54,11 +52,12 @@ class PP2Grammar implements GrammarInterface, BuilderInterface
 
         $this->reducers = $this->reducers();
 
-        $this->runtime = new Parser($lexer, $this->grammar(), [
-            ParserConfigsInterface::CONFIG_INITIAL_RULE => 0,
-            ParserConfigsInterface::CONFIG_AST_BUILDER => $this,
-            ParserConfigsInterface::CONFIG_STEP_REDUCER => $this->next(...),
-        ]);
+        $this->runtime = new Parser(
+            lexer: $lexer,
+            grammar: $this->grammar(),
+            initial: 0,
+            builder: $this,
+        );
     }
 
     /**
@@ -68,7 +67,7 @@ class PP2Grammar implements GrammarInterface, BuilderInterface
     private function reducers(): array
     {
         return [
-            20 => static function (array $delegates): NodeInterface {
+            20 => static function (array $delegates): Node {
                 if ($delegates === []) {
                     return new LanguageInjection(null);
                 }
@@ -81,13 +80,13 @@ class PP2Grammar implements GrammarInterface, BuilderInterface
 
                 return new ClassDelegate($delegate->getValue());
             },
-            14 => static function (Composite $include): NodeInterface {
+            14 => static function (Composite $include): Node {
                 return new IncludeNode($include[0]->getValue());
             },
-            13 => static function (Composite $pragma): NodeInterface {
+            13 => static function (Composite $pragma): Node {
                 return new PragmaDefinitionNode($pragma[0]->getValue(), $pragma[1]->getValue());
             },
-            15 => static function (Composite $token): NodeInterface {
+            15 => static function (Composite $token): Node {
                 /** @var TokenInterface[] $token */
                 [$state, $name, $pattern, $next] = $token;
 
@@ -104,10 +103,10 @@ class PP2Grammar implements GrammarInterface, BuilderInterface
 
                 return $result;
             },
-            16 => static function (Composite $skip): NodeInterface {
+            16 => static function (Composite $skip): Node {
                 return new TokenDefinitionNode($skip[0]->getValue(), $skip[1]->getValue(), false);
             },
-            17 => static function (array $sequence): NodeInterface {
+            17 => static function (array $sequence): Node {
                 [$name, $keep, $delegate, $stmt] = $sequence;
 
                 return new RuleDefinitionNode($name, $delegate, $stmt, $keep);
@@ -121,53 +120,53 @@ class PP2Grammar implements GrammarInterface, BuilderInterface
             27 => static function (TokenInterface $name): array {
                 return [$name];
             },
-            34 => static function (Composite $invocation): NodeInterface {
+            34 => static function (Composite $invocation): Node {
                 return new RuleNode($invocation[0]->getValue());
             },
-            32 => static function (Composite $token): NodeInterface {
+            32 => static function (Composite $token): Node {
                 return new TokenNode($token[0]->getValue(), true);
             },
-            31 => static function (Composite $skip): NodeInterface {
+            31 => static function (Composite $skip): Node {
                 return new TokenNode($skip[0]->getValue(), false);
             },
-            33 => static function (Composite $invocation): NodeInterface {
+            33 => static function (Composite $invocation): Node {
                 return new PatternNode($invocation[0]->getValue());
             },
-            21 => static function (array $statements): NodeInterface {
+            21 => static function (array $statements): Node {
                 return new AlternationNode($statements);
             },
-            22 => static function (array $statements): NodeInterface {
+            22 => static function (array $statements): Node {
                 return new ConcatenationNode($statements);
             },
-            24 => static function (array $payload): NodeInterface {
+            24 => static function (array $payload): Node {
                 [$stmt, $q] = $payload;
 
                 return new RepetitionNode($stmt, $q);
             },
-            23 => static function (array $group): NodeInterface {
+            23 => static function (array $group): Node {
                 return \reset($group);
             },
-            37 => static function (): NodeInterface {
+            37 => static function (): Node {
                 return new RepetitionQuantifierNode(0, 1);
             },
-            38 => static function (): NodeInterface {
+            38 => static function (): Node {
                 return new RepetitionQuantifierNode(1, \INF);
             },
-            39 => static function (): NodeInterface {
+            39 => static function (): Node {
                 return new RepetitionQuantifierNode(0, \INF);
             },
-            40 => static function (Composite $value): NodeInterface {
+            40 => static function (Composite $value): Node {
                 [$from, $to] = [$value[0]->getValue(), $value[1]->getValue()];
 
                 return new RepetitionQuantifierNode((int) $from, (int) $to);
             },
-            42 => static function (Composite $value): NodeInterface {
+            42 => static function (Composite $value): Node {
                 return new RepetitionQuantifierNode((int) $value[0]->getValue(), \INF);
             },
-            41 => static function (Composite $value): NodeInterface {
+            41 => static function (Composite $value): Node {
                 return new RepetitionQuantifierNode(0, (int) $value[0]->getValue());
             },
-            43 => static function (Composite $value): NodeInterface {
+            43 => static function (Composite $value): Node {
                 $count = (int) $value[0]->getValue();
 
                 return new RepetitionQuantifierNode($count, $count);
@@ -233,21 +232,6 @@ class PP2Grammar implements GrammarInterface, BuilderInterface
         ];
     }
 
-    protected function next(Context $context, \Closure $next): mixed
-    {
-        $offset = $context->getToken()->getOffset();
-
-        /** @var mixed $result */
-        $result = $next($context);
-
-        if ($result instanceof Node) {
-            $result->offset = $offset;
-            $result->file = $context->getSource();
-        }
-
-        return $result;
-    }
-
     public function parse(mixed $source, array $options = []): iterable
     {
         return $this->runtime->parse($source, $options);
@@ -256,7 +240,14 @@ class PP2Grammar implements GrammarInterface, BuilderInterface
     public function build(Context $context, mixed $result): mixed
     {
         if (isset($this->reducers[$context->getState()])) {
-            return $this->reducers[$context->getState()]($result);
+            $result = $this->reducers[$context->getState()]($result);
+
+            if ($result instanceof Node) {
+                $result->offset = $context->lastProcessedToken?->getOffset() ?? 0;
+                $result->file = $context->getSource();
+            }
+
+            return $result;
         }
 
         return null;
