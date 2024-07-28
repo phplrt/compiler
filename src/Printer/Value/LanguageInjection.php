@@ -11,7 +11,6 @@ class LanguageInjection implements PrintableValueInterface
 {
     /**
      * @readonly
-     *
      * @psalm-readonly-allow-private-mutation
      */
     protected string $code;

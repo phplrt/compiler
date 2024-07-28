@@ -16,7 +16,6 @@ abstract class RuleInstantiation implements PrintableValueInterface
 {
     /**
      * @readonly
-     *
      * @psalm-readonly-allow-private-mutation
      */
     protected RuleInterface $rule;

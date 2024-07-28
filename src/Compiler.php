@@ -37,7 +37,10 @@ class Compiler implements CompilerInterface, ParserInterface
 
     private TraverserInterface $preloader;
 
-    public function __construct(?GrammarInterface $grammar = null)
+    /**
+     * @param GrammarInterface|null $grammar
+     */
+    public function __construct(GrammarInterface $grammar = null)
     {
         $this->grammar = $grammar ?? new PP2Grammar();
 
@@ -78,6 +81,7 @@ class Compiler implements CompilerInterface, ParserInterface
     }
 
     /**
+     * {@inheritDoc}
      * @throws \Throwable
      */
     public function parse($source): iterable
@@ -86,7 +90,7 @@ class Compiler implements CompilerInterface, ParserInterface
 
         $parser = new Parser($lexer, $this->analyzer->rules, [
             ParserConfigsInterface::CONFIG_INITIAL_RULE => $this->analyzer->initial,
-            ParserConfigsInterface::CONFIG_AST_BUILDER => new PrintableNodeBuilder(),
+            ParserConfigsInterface::CONFIG_AST_BUILDER  => new PrintableNodeBuilder(),
         ]);
 
         return $parser->parse($source);

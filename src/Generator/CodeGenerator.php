@@ -25,7 +25,6 @@ abstract class CodeGenerator implements CodeGeneratorInterface
 
     /**
      * @readonly
-     *
      * @psalm-readonly-allow-private-mutation
      */
     protected CompilerContext $analyzer;
@@ -35,7 +34,10 @@ abstract class CodeGenerator implements CodeGeneratorInterface
         $this->analyzer = $analyzer;
     }
 
-    public function withClassReference(string $class, ?string $alias = null): CodeGeneratorInterface
+    /**
+     * {@inheritDoc}
+     */
+    public function withClassReference(string $class, string $alias = null): CodeGeneratorInterface
     {
         $self = clone $this;
         $self->classes[$class] = $alias;
@@ -43,7 +45,10 @@ abstract class CodeGenerator implements CodeGeneratorInterface
         return $self;
     }
 
-    public function withFunctionReference(string $function, ?string $alias = null): CodeGeneratorInterface
+    /**
+     * {@inheritDoc}
+     */
+    public function withFunctionReference(string $function, string $alias = null): CodeGeneratorInterface
     {
         $self = clone $this;
         $self->functions[$function] = $alias;
@@ -51,7 +56,10 @@ abstract class CodeGenerator implements CodeGeneratorInterface
         return $self;
     }
 
-    public function withConstReference(string $const, ?string $alias = null): CodeGeneratorInterface
+    /**
+     * {@inheritDoc}
+     */
+    public function withConstReference(string $const, string $alias = null): CodeGeneratorInterface
     {
         $self = clone $this;
         $self->constants[$const] = $alias;

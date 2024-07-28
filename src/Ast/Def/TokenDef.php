@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace Phplrt\Compiler\Ast\Def;
 
 /**
- * @internal this is an internal class, please do not use it in your application code
+ * @internal This is an internal class, please do not use it in your application code.
  * @psalm-internal Phplrt\Compiler
- *
  * @psalm-suppress PropertyNotSetInConstructor
  */
 class TokenDef extends Definition
@@ -24,8 +23,8 @@ class TokenDef extends Definition
 
     public function __construct(string $name, string $value, bool $keep = true)
     {
-        $this->name = $name;
+        $this->name  = $name;
         $this->value = $value;
-        $this->keep = $keep;
+        $this->keep  = $keep;
     }
 }
