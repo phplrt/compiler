@@ -13,12 +13,20 @@ namespace Phplrt\Compiler\Ast\Stmt;
 class TokenStmt extends Statement
 {
     /**
+     * @var non-empty-string
+     */
+    public string $name;
+
+    public bool $keep;
+
+    /**
      * @param non-empty-string $name
      */
-    public function __construct(
-        public readonly string $name,
-        public readonly bool $keep,
-    ) {
+    public function __construct(string $name, bool $keep)
+    {
         assert($name !== '', 'Token name must not be empty');
+
+        $this->name = $name;
+        $this->keep = $keep;
     }
 }

@@ -6,10 +6,27 @@ namespace Phplrt\Compiler\Printer;
 
 class Style
 {
+    /**
+     * @readonly
+     *
+     * @psalm-readonly-allow-private-mutation
+     */
+    public string $lineDelimiter;
+
+    /**
+     * @readonly
+     *
+     * @psalm-readonly-allow-private-mutation
+     */
+    public string $indentation;
+
     public function __construct(
-        public readonly string $lineDelimiter = "\n",
-        public readonly string $indentation = '    ',
-    ) {}
+        string $lineDelimiter = "\n",
+        string $indentation = '    '
+    ) {
+        $this->indentation = $indentation;
+        $this->lineDelimiter = $lineDelimiter;
+    }
 
     /**
      * @return list<string>

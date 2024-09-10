@@ -72,7 +72,7 @@ class CompilerContext extends Visitor
     /**
      * @var non-empty-string|int|null
      */
-    public string|int|null $initial = null;
+    public $initial;
 
     /**
      * @var int<0, max>
@@ -84,9 +84,12 @@ class CompilerContext extends Visitor
      */
     private array $aliases = [];
 
-    public function __construct(
-        private readonly IdCollection $ids,
-    ) {}
+    private IdCollection $ids;
+
+    public function __construct(IdCollection $ids)
+    {
+        $this->ids = $ids;
+    }
 
     /**
      * @psalm-suppress PropertyTypeCoercion
@@ -147,7 +150,7 @@ class CompilerContext extends Visitor
      *
      * @return non-empty-string|int<0, max>
      */
-    private function name(string $rule): string|int
+    private function name(string $rule)
     {
         if ($this->ids->rule($rule) === false) {
             return $this->aliases[$rule] ??= $this->counter++;
@@ -161,7 +164,7 @@ class CompilerContext extends Visitor
      *
      * @return non-empty-string|int<0, max>
      */
-    private function register(RuleInterface $rule, ?string $name = null): int|string
+    private function register(RuleInterface $rule, ?string $name = null)
     {
         if ($name === null) {
             $this->rules[$this->counter] = $rule;
@@ -206,7 +209,7 @@ class CompilerContext extends Visitor
      *
      * @psalm-suppress PossiblyInvalidArgument
      */
-    private function reduce(Statement $statement): int|string|RuleInterface
+    private function reduce(Statement $statement)
     {
         switch (true) {
             case $statement instanceof AlternationStmt:
@@ -234,7 +237,7 @@ class CompilerContext extends Visitor
                 return $this->ruleRelation($statement);
 
             default:
-                $error = \sprintf('Unsupported statement %s', $statement::class);
+                $error = \sprintf('Unsupported statement %s', \get_class($statement));
 
                 throw new GrammarException($error, $statement->file, $statement->offset);
         }
@@ -270,7 +273,7 @@ class CompilerContext extends Visitor
      *
      * @return RuleInterface|non-empty-string|int<0, max>
      */
-    private function map(mixed $rule): int|string|RuleInterface
+    private function map($rule)
     {
         if ($rule instanceof RuleInterface) {
             return $this->register($rule);
@@ -351,7 +354,7 @@ class CompilerContext extends Visitor
      * @throws NotAccessibleException
      * @throws \RuntimeException
      */
-    private function ruleRelation(RuleStmt $rule): int|string
+    private function ruleRelation(RuleStmt $rule)
     {
         if ($this->ids->rule($rule->name) === null) {
             $error = \sprintf('Rule "%s" has not been defined', $rule->name);

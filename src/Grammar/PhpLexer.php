@@ -12,9 +12,12 @@ use Phplrt\Source\File;
 
 class PhpLexer implements PositionalLexerInterface
 {
-    public function __construct(
-        private readonly bool $inline = true,
-    ) {}
+    private bool $inline;
+
+    public function __construct(bool $inline = true)
+    {
+        $this->inline = $inline;
+    }
 
     public function lex(mixed $source, int $offset = 0): iterable
     {
@@ -50,7 +53,7 @@ class PhpLexer implements PositionalLexerInterface
         return $prefix . ($offset === 0 ? $source : \substr($source, $offset));
     }
 
-    private function getName(string|int $id): string
+    private function getName(int|string $id): string
     {
         if (\is_string($id)) {
             return $id;

@@ -12,13 +12,20 @@ namespace Phplrt\Compiler\Ast\Def;
  */
 class TokenDef extends Definition
 {
+    public string $name;
+
+    public string $value;
+
+    public bool $keep;
+
     public ?string $state = null;
 
     public ?string $next = null;
 
-    public function __construct(
-        public string $name,
-        public string $value,
-        public bool $keep = true,
-    ) {}
+    public function __construct(string $name, string $value, bool $keep = true)
+    {
+        $this->name = $name;
+        $this->value = $value;
+        $this->keep = $keep;
+    }
 }

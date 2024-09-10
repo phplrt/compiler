@@ -9,9 +9,17 @@ use Phplrt\Compiler\Printer\PrinterInterface;
 
 class LanguageInjection implements PrintableValueInterface
 {
-    public function __construct(
-        protected readonly string $code,
-    ) {}
+    /**
+     * @readonly
+     *
+     * @psalm-readonly-allow-private-mutation
+     */
+    protected string $code;
+
+    public function __construct(string $code)
+    {
+        $this->code = $code;
+    }
 
     public function print(PrinterInterface $printer): string
     {

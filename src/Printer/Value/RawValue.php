@@ -9,9 +9,15 @@ use Phplrt\Compiler\Printer\PrinterInterface;
 
 final class RawValue implements PrintableValueInterface
 {
-    public function __construct(
-        private readonly string $code,
-    ) {}
+    /**
+     * @readonly
+     */
+    private string $code;
+
+    public function __construct(string $code)
+    {
+        $this->code = $code;
+    }
 
     public function print(PrinterInterface $printer): string
     {

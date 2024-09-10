@@ -29,7 +29,7 @@ use Phplrt\Visitor\TraverserInterface;
 /**
  * @template-implements ParserInterface<Node>
  */
-class Compiler implements CompilerInterface, ParserInterface, \Stringable
+class Compiler implements CompilerInterface, ParserInterface
 {
     private GrammarInterface $grammar;
 
@@ -80,7 +80,7 @@ class Compiler implements CompilerInterface, ParserInterface, \Stringable
     /**
      * @throws \Throwable
      */
-    public function parse(mixed $source): iterable
+    public function parse($source): iterable
     {
         $lexer = $this->createLexer();
 
@@ -107,7 +107,7 @@ class Compiler implements CompilerInterface, ParserInterface, \Stringable
         return new Multistate($states, $this->analyzer->transitions);
     }
 
-    public function load(mixed $source): self
+    public function load($source): self
     {
         /** @var iterable<NodeInterface> $ast */
         $ast = $this->run(File::new($source));
@@ -117,6 +117,19 @@ class Compiler implements CompilerInterface, ParserInterface, \Stringable
             ->traverse($ast);
 
         return $this;
+    }
+
+    /**
+     * @deprecated since phplrt 3.6 and will be removed in 4.0. Please
+     *             use {@see getContext()} instead.
+     */
+    public function getAnalyzer(): CompilerContext
+    {
+        trigger_deprecation('phplrt/compiler', '3.6', <<<'MSG'
+            Using "%s::getAnalyzer()" is deprecated, please use "%1$s::getContext()" instead.
+            MSG, static::class);
+
+        return $this->analyzer;
     }
 
     public function getContext(): CompilerContext
