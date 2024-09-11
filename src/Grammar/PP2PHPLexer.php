@@ -9,14 +9,11 @@ use Phplrt\Lexer\Token\Composite;
 
 class PP2PHPLexer implements PositionalLexerInterface
 {
-    private PhpLexer $lexer;
+    public function __construct(
+        private readonly PhpLexer $lexer,
+    ) {}
 
-    public function __construct(PhpLexer $lexer)
-    {
-        $this->lexer = $lexer;
-    }
-
-    public function lex($source, int $offset = 0): iterable
+    public function lex(mixed $source, int $offset = 0): iterable
     {
         $depth = 0;
 

@@ -29,13 +29,13 @@ use Phplrt\Visitor\TraverserInterface;
 /**
  * @template-implements ParserInterface<Node>
  */
-class Compiler implements CompilerInterface, ParserInterface
+class Compiler implements CompilerInterface, ParserInterface, \Stringable
 {
-    private GrammarInterface $grammar;
+    private readonly GrammarInterface $grammar;
 
-    private CompilerContext $analyzer;
+    private readonly CompilerContext $analyzer;
 
-    private TraverserInterface $preloader;
+    private readonly TraverserInterface $preloader;
 
     public function __construct(?GrammarInterface $grammar = null)
     {
@@ -45,24 +45,16 @@ class Compiler implements CompilerInterface, ParserInterface
         $this->analyzer = new CompilerContext($ids);
     }
 
-    /**
-     * @psalm-suppress MixedArgumentTypeCoercion: Allow impure closure as traverser
-     */
     private function bootPreloader(IdCollection $ids): TraverserInterface
     {
         return (new Traverser())
-            ->with(new IncludesExecutor(function (string $pathname): iterable {
-                return $this->run(File::fromPathname($pathname));
-            }))
+            ->with(new IncludesExecutor(fn(string $pathname): iterable => $this->run(File::fromPathname($pathname))))
             ->with($ids);
     }
 
     /**
      * @return iterable<Node>
      * @throws \Throwable
-     *
-     * @psalm-suppress MoreSpecificReturnType
-     * @psalm-suppress LessSpecificReturnStatement
      */
     private function run(ReadableInterface $source): iterable
     {
@@ -80,7 +72,7 @@ class Compiler implements CompilerInterface, ParserInterface
     /**
      * @throws \Throwable
      */
-    public function parse($source): iterable
+    public function parse(mixed $source): iterable
     {
         $lexer = $this->createLexer();
 
@@ -107,7 +99,7 @@ class Compiler implements CompilerInterface, ParserInterface
         return new Multistate($states, $this->analyzer->transitions);
     }
 
-    public function load($source): self
+    public function load(mixed $source): self
     {
         /** @var iterable<NodeInterface> $ast */
         $ast = $this->run(File::new($source));

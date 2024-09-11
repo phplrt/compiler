@@ -9,8 +9,6 @@ use Phplrt\Compiler\Ast\Node;
 /**
  * @internal this is an internal class, please do not use it in your application code
  * @psalm-internal Phplrt\Compiler
- *
- * @psalm-suppress PropertyNotSetInConstructor
  */
 class Quantifier extends Node
 {
@@ -22,13 +20,13 @@ class Quantifier extends Node
     /**
      * @var int<0, max>|float
      */
-    public $to;
+    public int|float $to;
 
     /**
      * @param int<0, max> $from
      * @param float|int<0, max> $to
      */
-    public function __construct(int $from, float $to)
+    public function __construct(int $from, float|int $to)
     {
         assert($from >= 0, 'Minimal repetition times must be greater or equal than 0');
         assert($to >= 0, 'Maximum repetition times must be greater or equal than 0');

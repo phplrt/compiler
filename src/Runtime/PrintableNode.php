@@ -11,34 +11,18 @@ use Phplrt\Contracts\Lexer\TokenInterface;
  * @internal this is an internal library class, please do not use it in your code
  * @psalm-internal Phplrt\Compiler\Runtime
  */
-final class PrintableNode implements NodeInterface
+final class PrintableNode implements NodeInterface, \Stringable
 {
-    /**
-     * @var int<0, max>
-     */
-    private int $offset;
-
-    /**
-     * @var non-empty-string
-     */
-    private string $state;
-
-    /**
-     * @var array<array-key, PrintableNode|TokenInterface>
-     */
-    public array $children = [];
-
     /**
      * @param int<0, max> $offset
      * @param non-empty-string $state
      * @param array<array-key, PrintableNode|TokenInterface> $children
      */
-    public function __construct(int $offset, string $state, array $children)
-    {
-        $this->offset = $offset;
-        $this->state = $state;
-        $this->children = $children;
-    }
+    public function __construct(
+        private readonly int $offset,
+        private readonly string $state,
+        public array $children,
+    ) {}
 
     /**
      * @return \Traversable<non-empty-string, array<array-key, PrintableNode>>
@@ -69,7 +53,6 @@ final class PrintableNode implements NodeInterface
         foreach ($this->children as $child) {
             switch (true) {
                 case $child instanceof self:
-                    /** @psalm-suppress RedundantFunctionCall: PHP 7.4 unpacking expect only integer keys */
                     $result = [
                         ...\array_values($result),
                         ...\array_values($child->render($depth + 1))

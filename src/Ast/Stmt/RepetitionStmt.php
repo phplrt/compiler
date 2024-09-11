@@ -7,20 +7,13 @@ namespace Phplrt\Compiler\Ast\Stmt;
 /**
  * @internal this is an internal class, please do not use it in your application code
  * @psalm-internal Phplrt\Compiler
- *
- * @psalm-suppress PropertyNotSetInConstructor
  */
 class RepetitionStmt extends Statement
 {
-    public Statement $statement;
-
-    public Quantifier $quantifier;
-
-    public function __construct(Statement $stmt, Quantifier $quantifier)
-    {
-        $this->statement = $stmt;
-        $this->quantifier = $quantifier;
-    }
+    public function __construct(
+        public Statement $statement,
+        public Quantifier $quantifier,
+    ) {}
 
     /**
      * @return \Traversable<non-empty-string, Statement|Quantifier>

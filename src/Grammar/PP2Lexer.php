@@ -196,14 +196,14 @@ final class PP2Lexer implements PositionalLexerInterface
         'T_BLOCK_COMMENT',
     ];
 
-    private Lexer $lexer;
+    private readonly Lexer $lexer;
 
     public function __construct()
     {
         $this->lexer = new Lexer(self::LEXER_TOKENS, self::LEXER_SKIPPED_TOKENS);
     }
 
-    public function lex($source, int $offset = 0): iterable
+    public function lex(mixed $source, int $offset = 0): iterable
     {
         return $this->lexer->lex($source, $offset);
     }
