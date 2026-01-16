@@ -14,7 +14,7 @@ class CodeGeneratorTest extends TestCase
         $generator = (new Compiler())
             ->load(\file_get_contents(__DIR__ . '/resources/input.pp2'))
             ->build()
-            ->withClassReference(Parser::class);
+            ->withClassUsage(Parser::class);
 
         $source = $this->formatText(\file_get_contents(__DIR__ . '/resources/output.php'));
 

@@ -21,7 +21,7 @@ final class PrintableNode implements NodeInterface, \Stringable
     public function __construct(
         private readonly int $offset,
         private readonly string $state,
-        public readonly array $children,
+        public array $children,
     ) {}
 
     /**
@@ -53,10 +53,9 @@ final class PrintableNode implements NodeInterface, \Stringable
         foreach ($this->children as $child) {
             switch (true) {
                 case $child instanceof self:
-                    /** @psalm-suppress RedundantFunctionCall: PHP 7.4 unpacking expect only integer keys */
                     $result = [
                         ...\array_values($result),
-                        ...\array_values($child->render($depth + 1)),
+                        ...\array_values($child->render($depth + 1))
                     ];
                     break;
 

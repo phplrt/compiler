@@ -31,11 +31,11 @@ use Phplrt\Visitor\TraverserInterface;
  */
 class Compiler implements CompilerInterface, ParserInterface, \Stringable
 {
-    private GrammarInterface $grammar;
+    private readonly GrammarInterface $grammar;
 
-    private CompilerContext $analyzer;
+    private readonly CompilerContext $analyzer;
 
-    private TraverserInterface $preloader;
+    private readonly TraverserInterface $preloader;
 
     public function __construct(?GrammarInterface $grammar = null)
     {
@@ -45,24 +45,16 @@ class Compiler implements CompilerInterface, ParserInterface, \Stringable
         $this->analyzer = new CompilerContext($ids);
     }
 
-    /**
-     * @psalm-suppress MixedArgumentTypeCoercion: Allow impure closure as traverser
-     */
     private function bootPreloader(IdCollection $ids): TraverserInterface
     {
         return (new Traverser())
-            ->with(new IncludesExecutor(function (string $pathname): iterable {
-                return $this->run(File::fromPathname($pathname));
-            }))
+            ->with(new IncludesExecutor(fn(string $pathname): iterable => $this->run(File::fromPathname($pathname))))
             ->with($ids);
     }
 
     /**
      * @return iterable<Node>
      * @throws \Throwable
-     *
-     * @psalm-suppress MoreSpecificReturnType
-     * @psalm-suppress LessSpecificReturnStatement
      */
     private function run(ReadableInterface $source): iterable
     {
@@ -117,6 +109,19 @@ class Compiler implements CompilerInterface, ParserInterface, \Stringable
             ->traverse($ast);
 
         return $this;
+    }
+
+    /**
+     * @deprecated since phplrt 3.6 and will be removed in 4.0. Please
+     *             use {@see getContext()} instead.
+     */
+    public function getAnalyzer(): CompilerContext
+    {
+        trigger_deprecation('phplrt/compiler', '3.6', <<<'MSG'
+            Using "%s::getAnalyzer()" is deprecated, please use "%1$s::getContext()" instead.
+            MSG, static::class);
+
+        return $this->analyzer;
     }
 
     public function getContext(): CompilerContext

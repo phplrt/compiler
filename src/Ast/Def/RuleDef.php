@@ -10,19 +10,17 @@ use Phplrt\Compiler\Ast\Stmt\Statement;
 /**
  * @internal this is an internal class, please do not use it in your application code
  * @psalm-internal Phplrt\Compiler
- *
- * @psalm-suppress PropertyNotSetInConstructor
  */
 class RuleDef extends Definition
 {
-    /**
-     * @param non-empty-string $name
-     */
     public function __construct(
+        /**
+         * @var non-empty-string
+         */
         public string $name,
         public DelegateStmt $delegate,
         public Statement $body,
-        public bool $keep = true
+        public bool $keep = true,
     ) {
         assert($name !== '', 'Rule name must not be empty');
     }

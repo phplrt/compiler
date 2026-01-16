@@ -35,7 +35,7 @@ use Phplrt\Parser\ParserConfigsInterface;
 
 class PP2Grammar implements GrammarInterface, BuilderInterface
 {
-    private Parser $runtime;
+    private readonly Parser $runtime;
 
     /**
      * @var array<array-key, \Closure>
@@ -63,8 +63,6 @@ class PP2Grammar implements GrammarInterface, BuilderInterface
 
     /**
      * @return array<array-key, \Closure>
-     *
-     * @psalm-suppress all
      */
     private function reducers(): array
     {
@@ -77,19 +75,15 @@ class PP2Grammar implements GrammarInterface, BuilderInterface
                 $delegate = \reset($delegates);
 
                 if ($delegate->getName() === 'T_PHP_CODE') {
-                    return new DelegateStmt(\trim($delegate->getValue()));
+                    return new DelegateStmt(\trim((string) $delegate->getValue()));
                 }
 
                 return new ClassDelegateStmt($delegate->getValue());
             },
-            14 => static function (Composite $include): NodeInterface {
-                return new IncludeExpr($include[0]->getValue());
-            },
-            13 => static function (Composite $pragma): NodeInterface {
-                return new PragmaDef($pragma[0]->getValue(), $pragma[1]->getValue());
-            },
+            14 => static fn(Composite $include): NodeInterface => new IncludeExpr($include[0]->getValue()),
+            13 => static fn(Composite $pragma): NodeInterface => new PragmaDef($pragma[0]->getValue(), $pragma[1]->getValue()),
             15 => static function (Composite $token): NodeInterface {
-                /** @var TokenInterface[] $token */
+                /** @var iterable<TokenInterface> $token */
                 [$state, $name, $pattern, $next] = $token;
 
                 $result = new TokenDef($name->getValue(), $pattern->getValue());
@@ -99,75 +93,43 @@ class PP2Grammar implements GrammarInterface, BuilderInterface
                     $result->state = $state->getValue();
                 }
 
-                if ($next) {
+                if ($next !== null) {
                     $result->next = $next->getValue();
                 }
 
                 return $result;
             },
-            16 => static function (Composite $skip): NodeInterface {
-                return new TokenDef($skip[0]->getValue(), $skip[1]->getValue(), false);
-            },
+            16 => static fn(Composite $skip): NodeInterface => new TokenDef($skip[0]->getValue(), $skip[1]->getValue(), false),
             17 => static function (array $sequence): NodeInterface {
                 [$name, $keep, $delegate, $stmt] = $sequence;
 
                 return new RuleDef($name, $delegate, $stmt, $keep);
             },
-            18 => static function (array $name): array {
-                return [$name[0]->getValue(), true];
-            },
-            19 => static function (array $name): array {
-                return [$name[0]->getValue(), false];
-            },
-            27 => static function (TokenInterface $name): array {
-                return [$name];
-            },
-            34 => static function (Composite $invocation): NodeInterface {
-                return new RuleStmt($invocation[0]->getValue());
-            },
-            32 => static function (Composite $token): NodeInterface {
-                return new TokenStmt($token[0]->getValue(), true);
-            },
-            31 => static function (Composite $skip): NodeInterface {
-                return new TokenStmt($skip[0]->getValue(), false);
-            },
-            33 => static function (Composite $invocation): NodeInterface {
-                return new PatternStmt($invocation[0]->getValue());
-            },
-            21 => static function (array $statements): NodeInterface {
-                return new AlternationStmt($statements);
-            },
-            22 => static function (array $statements): NodeInterface {
-                return new ConcatenationStmt($statements);
-            },
+            18 => static fn(array $name): array => [$name[0]->getValue(), true],
+            19 => static fn(array $name): array => [$name[0]->getValue(), false],
+            27 => static fn(TokenInterface $name): array => [$name],
+            34 => static fn(Composite $invocation): NodeInterface => new RuleStmt($invocation[0]->getValue()),
+            32 => static fn(Composite $token): NodeInterface => new TokenStmt($token[0]->getValue(), true),
+            31 => static fn(Composite $skip): NodeInterface => new TokenStmt($skip[0]->getValue(), false),
+            33 => static fn(Composite $invocation): NodeInterface => new PatternStmt($invocation[0]->getValue()),
+            21 => static fn(array $statements): NodeInterface => new AlternationStmt($statements),
+            22 => static fn(array $statements): NodeInterface => new ConcatenationStmt($statements),
             24 => static function (array $payload): NodeInterface {
                 [$stmt, $q] = $payload;
 
                 return new RepetitionStmt($stmt, $q);
             },
-            23 => static function (array $group): NodeInterface {
-                return \reset($group);
-            },
-            37 => static function (): NodeInterface {
-                return new Quantifier(0, 1);
-            },
-            38 => static function (): NodeInterface {
-                return new Quantifier(1, \INF);
-            },
-            39 => static function (): NodeInterface {
-                return new Quantifier(0, \INF);
-            },
+            23 => static fn(array $group): NodeInterface => \reset($group),
+            37 => static fn(): NodeInterface => new Quantifier(0, 1),
+            38 => static fn(): NodeInterface => new Quantifier(1, \INF),
+            39 => static fn(): NodeInterface => new Quantifier(0, \INF),
             40 => static function (Composite $value): NodeInterface {
                 [$from, $to] = [$value[0]->getValue(), $value[1]->getValue()];
 
                 return new Quantifier((int) $from, (int) $to);
             },
-            42 => static function (Composite $value): NodeInterface {
-                return new Quantifier((int) $value[0]->getValue(), \INF);
-            },
-            41 => static function (Composite $value): NodeInterface {
-                return new Quantifier(0, (int) $value[0]->getValue());
-            },
+            42 => static fn(Composite $value): NodeInterface => new Quantifier((int) $value[0]->getValue(), \INF),
+            41 => static fn(Composite $value): NodeInterface => new Quantifier(0, (int) $value[0]->getValue()),
             43 => static function (Composite $value): NodeInterface {
                 $count = (int) $value[0]->getValue();
 
@@ -234,7 +196,7 @@ class PP2Grammar implements GrammarInterface, BuilderInterface
         ];
     }
 
-    protected function next(Context $context, \Closure $next)
+    protected function next(Context $context, \Closure $next): mixed
     {
         $offset = $context->getToken()->getOffset();
 
@@ -256,10 +218,7 @@ class PP2Grammar implements GrammarInterface, BuilderInterface
         return $this->runtime->parse($source, $options);
     }
 
-    /**
-     * @psalm-suppress MixedFunctionCall
-     */
-    public function build(Context $context, mixed $result)
+    public function build(Context $context, mixed $result): mixed
     {
         if (isset($this->reducers[$context->getState()])) {
             return $this->reducers[$context->getState()]($result);
