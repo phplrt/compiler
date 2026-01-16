@@ -55,7 +55,7 @@ final class PrintableNode implements NodeInterface, \Stringable
                 case $child instanceof self:
                     $result = [
                         ...\array_values($result),
-                        ...\array_values($child->render($depth + 1))
+                        ...\array_values($child->render($depth + 1)),
                     ];
                     break;
 
