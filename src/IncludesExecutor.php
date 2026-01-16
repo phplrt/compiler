@@ -26,15 +26,13 @@ class IncludesExecutor extends Visitor
     /**
      * @param \Closure(non-empty-string):iterable<Node> $loader
      */
-    public function __construct(
-        private readonly \Closure $loader,
-    ) {}
+    public function __construct(private \Closure $loader) {}
 
     /**
      * @throws NotAccessibleException
      * @throws \RuntimeException
      */
-    public function leave(NodeInterface $node): mixed
+    public function leave(NodeInterface $node): array|NodeInterface
     {
         if ($node instanceof IncludeExpr) {
             return $this->lookup($node);
@@ -46,6 +44,9 @@ class IncludesExecutor extends Visitor
     /**
      * @throws NotAccessibleException
      * @throws \RuntimeException
+     *
+     * @psalm-suppress InvalidReturnType
+     * @psalm-suppress InvalidReturnStatement
      */
     private function lookup(IncludeExpr $expr): array
     {

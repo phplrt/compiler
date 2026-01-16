@@ -50,7 +50,7 @@ class PhpLexer implements PositionalLexerInterface
         return $prefix . ($offset === 0 ? $source : \substr($source, $offset));
     }
 
-    private function getName(int|string $id): string
+    private function getName(string|int $id): string
     {
         if (\is_string($id)) {
             return $id;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phplrt\Compiler\Generator;
 
-interface GeneratorInterface extends \Stringable
+interface GeneratableInterface extends \Stringable
 {
     /**
      * Generates code result as string.

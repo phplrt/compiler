@@ -25,7 +25,7 @@ class IdCollection extends Visitor
      */
     private array $tokens = [];
 
-    public function enter(NodeInterface $node): mixed
+    public function enter(NodeInterface $node): void
     {
         if ($node instanceof RuleDef) {
             $this->rules[$node->name] = $node->keep;
@@ -34,8 +34,6 @@ class IdCollection extends Visitor
         if ($node instanceof TokenDef) {
             $this->tokens[$node->name] = $node->keep;
         }
-
-        return null;
     }
 
     public function lexeme(string $name): ?bool
