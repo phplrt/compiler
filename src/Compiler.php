@@ -4,140 +4,128 @@ declare(strict_types=1);
 
 namespace Phplrt\Compiler;
 
-use Phplrt\Compiler\Ast\Node;
-use Phplrt\Compiler\Context\CompilerContext;
-use Phplrt\Compiler\Context\IdCollection;
-use Phplrt\Compiler\Exception\GrammarException;
-use Phplrt\Compiler\Generator\CodeGeneratorInterface;
-use Phplrt\Compiler\Generator\PhpCodeGenerator;
-use Phplrt\Compiler\Grammar\GrammarInterface;
-use Phplrt\Compiler\Grammar\PP2Grammar;
-use Phplrt\Compiler\Runtime\PrintableNodeBuilder;
-use Phplrt\Contracts\Ast\NodeInterface;
-use Phplrt\Contracts\Exception\RuntimeExceptionInterface;
-use Phplrt\Contracts\Lexer\LexerInterface;
+use Phplrt\Compiler\Exception\CompilerRuntimeException;
+use Phplrt\Compiler\Generator\GeneratedOutput;
+use Phplrt\Compiler\Generator\OutputGeneratorInterface;
+use Phplrt\Compiler\Generator\PhpOutputGenerator;
+use Phplrt\Compiler\Loader\ReferenceLoader;
+use Phplrt\Compiler\Loader\SyntaxLoaderRegistry;
+use Phplrt\Contracts\Parser\Exception\RuntimeExceptionInterface;
 use Phplrt\Contracts\Parser\ParserInterface;
+use Phplrt\Contracts\Source\Exception\SourceExceptionInterface;
+use Phplrt\Contracts\Source\FileInterface;
 use Phplrt\Contracts\Source\ReadableInterface;
-use Phplrt\Lexer\Lexer;
-use Phplrt\Lexer\Multistate;
-use Phplrt\Parser\Parser;
-use Phplrt\Parser\ParserConfigsInterface;
-use Phplrt\Source\File;
-use Phplrt\Visitor\Traverser;
-use Phplrt\Visitor\TraverserInterface;
+use Phplrt\Lexer\Builder\LexerBuilder;
+use Phplrt\Parser\Builder\ParserBuilder;
 
-/**
- * @template-implements ParserInterface<Node>
- */
-class Compiler implements CompilerInterface, ParserInterface, \Stringable
+final class Compiler
 {
-    private readonly GrammarInterface $grammar;
+    public readonly ParserBuilder $parser;
 
-    private readonly CompilerContext $analyzer;
+    public readonly LexerBuilder $lexer;
 
-    private readonly TraverserInterface $preloader;
+    private readonly ReferenceLoader $loader;
 
-    public function __construct(?GrammarInterface $grammar = null)
-    {
-        $this->grammar = $grammar ?? new PP2Grammar();
+    /**
+     * The grammar files that have already been read.
+     *
+     * A grammar reached from several places describes the very same tokens and
+     * rules every time, and declaring them twice is an error, so it is read
+     * once.
+     *
+     * @var array<non-empty-string, true>
+     */
+    private array $loaded = [];
 
-        $this->preloader = $this->bootPreloader($ids = new IdCollection());
-        $this->analyzer = new CompilerContext($ids);
-    }
-
-    private function bootPreloader(IdCollection $ids): TraverserInterface
-    {
-        return (new Traverser())
-            ->with(new IncludesExecutor(fn(string $pathname): iterable => $this->run(File::fromPathname($pathname))))
-            ->with($ids);
+    public function __construct(
+        /**
+         * Tells which format a grammar is written in and reads it.
+         */
+        private readonly SyntaxLoaderRegistry $loaders = new SyntaxLoaderRegistry(),
+    ) {
+        $this->parser = new ParserBuilder();
+        $this->lexer = new LexerBuilder();
+        $this->loader = new ReferenceLoader($this, $this->loaders);
     }
 
     /**
-     * @return iterable<Node>
-     * @throws \Throwable
+     * Reads the given grammar along with every grammar it refers to.
+     *
+     * @throws CompilerRuntimeException in case of the grammar says something that
+     *         cannot be expressed or refers to a grammar that cannot be found
+     * @throws RuntimeExceptionInterface in case of the grammar cannot be
+     *         recognized
+     * @throws SourceExceptionInterface in case of the grammar cannot be read
      */
-    private function run(ReadableInterface $source): iterable
+    public function load(ReadableInterface $source): self
     {
-        try {
-            $ast = $this->grammar->parse($source);
-
-            return $this->preloader->traverse($ast);
-        } catch (GrammarException $e) {
-            throw $e;
-        } catch (RuntimeExceptionInterface $e) {
-            throw new GrammarException($e->getMessage(), $source, $e->getToken()->getOffset());
-        }
-    }
-
-    /**
-     * @throws \Throwable
-     */
-    public function parse(mixed $source): iterable
-    {
-        $lexer = $this->createLexer();
-
-        $parser = new Parser($lexer, $this->analyzer->rules, [
-            ParserConfigsInterface::CONFIG_INITIAL_RULE => $this->analyzer->initial,
-            ParserConfigsInterface::CONFIG_AST_BUILDER => new PrintableNodeBuilder(),
-        ]);
-
-        return $parser->parse($source);
-    }
-
-    private function createLexer(): LexerInterface
-    {
-        if (\count($this->analyzer->tokens) === 1) {
-            return new Lexer($this->analyzer->tokens[CompilerContext::STATE_DEFAULT], $this->analyzer->skip);
+        if (!$this->markAsLoaded($source)) {
+            return $this;
         }
 
-        $states = [];
+        $loader = $this->loaders->selectFor($source);
 
-        foreach ($this->analyzer->tokens as $state => $tokens) {
-            $states[$state] = new Lexer($tokens, $this->analyzer->skip);
+        /**
+         * A reference is read the moment the grammar hands it over, so the
+         * declarations of the grammar it points at land exactly where the
+         * reference is written.
+         */
+        foreach ($loader->load($source, $this->parser, $this->lexer) as $reference) {
+            $this->loader->load($source, $reference);
         }
-
-        return new Multistate($states, $this->analyzer->transitions);
-    }
-
-    public function load(mixed $source): self
-    {
-        /** @var iterable<NodeInterface> $ast */
-        $ast = $this->run(File::new($source));
-
-        (new Traverser())
-            ->with($this->analyzer)
-            ->traverse($ast);
 
         return $this;
     }
 
     /**
-     * @deprecated since phplrt 3.6 and will be removed in 4.0. Please
-     *             use {@see getContext()} instead.
+     * Returns {@see true} in case of the given grammar has not been read yet.
      */
-    public function getAnalyzer(): CompilerContext
+    private function markAsLoaded(ReadableInterface $source): bool
     {
-        trigger_deprecation('phplrt/compiler', '3.6', <<<'MSG'
-            Using "%s::getAnalyzer()" is deprecated, please use "%1$s::getContext()" instead.
-            MSG, static::class);
+        // A grammar written in no file is named by nothing, so there is no
+        // way to tell it from another one
+        if (!$source instanceof FileInterface) {
+            return true;
+        }
 
-        return $this->analyzer;
+        $pathname = \realpath($source->pathname);
+
+        if ($pathname === false) {
+            $pathname = $source->pathname;
+        }
+
+        if (isset($this->loaded[$pathname])) {
+            return false;
+        }
+
+        return $this->loaded[$pathname] = true;
     }
 
-    public function getContext(): CompilerContext
+    public function build(): CompilerResult
     {
-        return $this->analyzer;
+        $lexer = $this->lexer->build();
+        $parser = $this->parser->build($lexer);
+
+        return new CompilerResult(
+            lexer: $lexer,
+            parser: $parser,
+        );
     }
 
-    public function build(): CodeGeneratorInterface
+    /**
+     * Writes the grammar that has been read down as source code.
+     */
+    public function generate(OutputGeneratorInterface $generator = new PhpOutputGenerator()): GeneratedOutput
     {
-        return new PhpCodeGenerator($this->analyzer);
+        return new GeneratedOutput($this->build(), $generator);
     }
 
-    public function __toString(): string
+    public function getParser(): ParserInterface
     {
-        $generator = $this->build();
+        $result = $this->build();
 
-        return $generator->generate();
+        return $result->parser->toParser(
+            lexer: $result->lexer->toLexer(),
+        );
     }
 }

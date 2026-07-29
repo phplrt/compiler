@@ -4,7 +4,7 @@
 
 ## Compiler
 
-This is a subtree split of the phplrt compiler component. 
+This is a subtree split of the phplrt compiler component.
 
 ### Resources
 
