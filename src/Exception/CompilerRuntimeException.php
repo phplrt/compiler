@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace Phplrt\Compiler\Exception;
 
-use Phplrt\Contracts\Lexer\Exception\RuntimeExceptionInterface as LexerRuntimeExceptionInterface;
-use Phplrt\Contracts\Parser\Exception\RuntimeExceptionInterface as ParserRuntimeExceptionInterface;
 use Phplrt\Contracts\Source\ReadableInterface;
-use Phplrt\Exception\ErrorInfoResult;
 use Phplrt\Exception\ErrorPrinter;
 
 /**
@@ -49,76 +46,14 @@ abstract class CompilerRuntimeException extends CompilerException
         );
     }
 
-    /**
-     * Describes every error of the chain that points at a fragment of a source
-     * code, in the order the errors have been thrown.
-     *
-     * A grammar is read in three layers and every one of them says where it
-     * has failed in its own way: a lexer fails on a token, a parser fails on a
-     * token and may span as far as the rule it has failed on, and a compiler
-     * fails on a fragment of a grammar that has been read from no token at
-     * all.
-     *
-     * @return iterable<array-key, ErrorInfoResult>
-     */
-    private function backtrace(): iterable
-    {
-        $current = $this;
-
-        do {
-            if ($current instanceof self) {
-                yield self::describe($current, $current->source, $current->offset, $current->length ?? 0);
-
-                continue;
-            }
-
-            if ($current instanceof ParserRuntimeExceptionInterface) {
-                $token = $current->token;
-
-                yield self::describe($current, $current->source, $token->offset, $current->length ?? $token->size);
-
-                continue;
-            }
-
-            if ($current instanceof LexerRuntimeExceptionInterface) {
-                $token = $current->token;
-
-                yield self::describe($current, $current->source, $token->offset, $token->size);
-            }
-        } while (($current = $current->getPrevious()) !== null);
-    }
-
-    /**
-     * @param int<0, max> $offset
-     * @param int<0, max> $length
-     */
-    private static function describe(
-        \Throwable $error,
-        ReadableInterface $source,
-        int $offset,
-        int $length,
-    ): ErrorInfoResult {
-        return new ErrorPrinter()
-            ->print($source, $offset, $length)
-            ->withMessage($error->getMessage())
-            ->withClass($error::class);
-    }
-
     public function __toString(): string
     {
-        if (!\class_exists(ErrorPrinter::class)) {
-            return parent::__toString();
-        }
-
         try {
-            return \implode("\n", [
-                ...$this->backtrace(),
-                \sprintf('  thrown in %s on line %d', $this->file, $this->line),
-                $this->getTraceAsString(),
-            ]);
+            return (string) new ErrorPrinter()
+                ->print($this)
+                ->withSource($this->source)
+                ->withInterval($this->offset, $this->length ?? 0);
         } catch (\Throwable) {
-            // The grammar the error occurred in is gone, so there is nothing
-            // left to show around it.
             return parent::__toString();
         }
     }
