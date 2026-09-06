@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Phplrt\Compiler\Generator;
 
+use Phplrt\Compiler\Compiler;
 use Phplrt\Compiler\CompilerResult;
 use Phplrt\Compiler\Exception\CodeGenerationException;
 use Phplrt\Compiler\Exception\GeneratorException;
 use Phplrt\Compiler\Exception\InvalidClassNameException;
+use Phplrt\Compiler\Exception\UnsupportedClassModifierException;
 use Phplrt\Lexer\Builder\Definition\Lexer\EmbeddedLexerInterface;
 use Phplrt\Lexer\Builder\Exception\LexerCompilerException;
 use Phplrt\Lexer\Builder\LexerBuilderResult;
@@ -72,14 +74,18 @@ final class PhpOutputGenerator implements OutputGeneratorInterface
     {
         self::assertFragmentsAreDefined($result->lexer);
         self::assertClassNameIsValid($context->class);
+        self::assertClassModifierIsNamed($context);
 
         try {
             $generated = $this->twig->render(self::TEMPLATE_ENTRYPOINT, [
+                'version' => Compiler::getVersion(),
                 'namespace' => $context->namespace,
                 'imports' => $context->imports,
                 'includes' => $context->includes,
                 'class' => $context->class,
                 'php' => $context->php,
+                'readonly' => $context->readonly,
+                'modifier' => $context->modifier,
                 'lexer' => $result->lexer,
                 'parser' => $result->parser,
                 'methods' => $this->printer->createMethodNames(
@@ -116,6 +122,24 @@ final class PhpOutputGenerator implements OutputGeneratorInterface
         }
 
         throw InvalidClassNameException::becauseClassNameIsInvalid($class);
+    }
+
+    /**
+     * Checks that the parser carrying a modifier is named.
+     *
+     * An anonymous class is written down as the very expression building it,
+     * which leaves nothing a modifier could be written on.
+     *
+     * @throws UnsupportedClassModifierException in case of the parser carries
+     *         a modifier and is named by nothing
+     */
+    private static function assertClassModifierIsNamed(OutputContext $context): void
+    {
+        if ($context->modifier === ClassModifier::Default || $context->class !== null) {
+            return;
+        }
+
+        throw UnsupportedClassModifierException::becauseModifierRequiresClassName($context->modifier);
     }
 
     /**

@@ -51,6 +51,14 @@ final class OutputContext
          * Provides PHP target version
          */
         ?TargetPhpVersion $php = null,
+        /**
+         * Whether the parser is written down as readonly.
+         */
+        public readonly bool $readonly = true,
+        /**
+         * The way the class of the parser is declared.
+         */
+        public readonly ClassModifier $modifier = ClassModifier::Default,
     ) {
         $this->php = $php
             ?? TargetPhpVersion::current();

@@ -54,6 +54,8 @@ final class GeneratedOutput implements \Stringable
             imports: $this->context->imports,
             class: $this->context->class,
             php: $this->context->php,
+            readonly: $this->context->readonly,
+            modifier: $this->context->modifier,
         ));
     }
 
@@ -72,6 +74,8 @@ final class GeneratedOutput implements \Stringable
             imports: $this->context->imports,
             class: $class,
             php: $this->context->php,
+            readonly: $this->context->readonly,
+            modifier: $this->context->modifier,
         ));
     }
 
@@ -90,6 +94,8 @@ final class GeneratedOutput implements \Stringable
             imports: [...$this->context->imports, new ClassImport($class, $as)],
             class: $this->context->class,
             php: $this->context->php,
+            readonly: $this->context->readonly,
+            modifier: $this->context->modifier,
         ));
     }
 
@@ -105,6 +111,45 @@ final class GeneratedOutput implements \Stringable
             imports: $this->context->imports,
             class: $this->context->class,
             php: $version,
+            readonly: $this->context->readonly,
+            modifier: $this->context->modifier,
+        ));
+    }
+
+    /**
+     * Returns the output annotating the parser as readonly.
+     *
+     * @api
+     */
+    public function withReadonly(bool $readonly = true): self
+    {
+        return $this->withContext(new OutputContext(
+            namespace: $this->context->namespace,
+            imports: $this->context->imports,
+            class: $this->context->class,
+            php: $this->context->php,
+            readonly: $readonly,
+            modifier: $this->context->modifier,
+        ));
+    }
+
+    /**
+     * Returns the output declaring the parser the given way.
+     *
+     * A parser carrying a modifier is declared rather than returned, so it is
+     * only written down along with a name of its own.
+     *
+     * @api
+     */
+    public function withClassModifier(ClassModifier $modifier): self
+    {
+        return $this->withContext(new OutputContext(
+            namespace: $this->context->namespace,
+            imports: $this->context->imports,
+            class: $this->context->class,
+            php: $this->context->php,
+            readonly: $this->context->readonly,
+            modifier: $modifier,
         ));
     }
 
