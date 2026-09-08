@@ -2,6 +2,9 @@
  * -----------------------------------------------------------------------------
  *  Quantifiers
  * -----------------------------------------------------------------------------
+ *
+ *  How many times a statement may repeat.
+ *
  */
 
 Quantifier
@@ -74,6 +77,10 @@ RangeBody
 /**
  * Between two numbers of times, like:
  *  - Number(){2,5}
+ *
+ *  The range is written by hand, so the greatest number may well be lower than
+ *  the least one. Whether it makes sense is decided while the grammar is being
+ *  compiled rather than while it is being read.
  */
 RangeFromTo -> {
     \assert(\is_array($children));
