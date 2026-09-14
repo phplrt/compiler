@@ -446,7 +446,7 @@ final class PP2Parser implements \Phplrt\Contracts\Parser\ParserInterface
     /**
      * @var \Phplrt\Parser\Parser<TResult>
      */
-    protected readonly \Phplrt\Parser\Parser $parser;
+    protected \Phplrt\Parser\Parser $parser;
 
     protected readonly \Phplrt\Contracts\Lexer\LexerInterface $lexer;
 

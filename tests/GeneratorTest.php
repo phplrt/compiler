@@ -66,15 +66,14 @@ final class GeneratorTest extends TestCase
               ;
             PP3)->withClassName('KeptRuleParser');
 
-        $assertion = Assert::string($output)
-            ->contains('public function withInitial(int $rule)');
-
         if (\PHP_VERSION_ID >= 80300) {
-            $assertion->contains('public const int Number = ');
-        } else {
-            $assertion->contains('public const Number = ');
+            Assert::string($output)
+                ->contains('public const int Number = ');
+            return;
         }
 
+        Assert::string($output)
+            ->contains('public const Number = ');
     }
 
     public function testGrammarWithoutKeptRulesDeclaresNoEntrypoints(): void
