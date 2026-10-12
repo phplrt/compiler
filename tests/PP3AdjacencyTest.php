@@ -95,6 +95,70 @@ final class PP3AdjacencyTest extends TestCase
         $parser->parse(StringSource::createFromString('a/* here */.b'));
     }
 
+    private const CHANNEL_COMMENT = <<<'PP3'
+        %token T_COMMENT  /\*.*?\*/  -> channel(comment)
+        %token T_NAME     \w++
+        %token T_DOT      \.
+
+        PP3;
+
+    public function testACommentOfAChannelIsWrittenInBetween(): void
+    {
+        $parser = self::compile(self::CHANNEL_COMMENT . <<<'PP3'
+            Pair -> { return 'ok'; }
+              : <T_NAME> ~ ::T_DOT:: ~ <T_NAME>
+              ;
+            PP3);
+
+        Assert::same($parser->parse(StringSource::createFromString('a.b')), 'ok');
+
+        Expect::exception(UnexpectedTokenException::class);
+
+        $parser->parse(StringSource::createFromString('a/* here */.b'));
+    }
+
+    public function testACommentOfAChannelSatisfiesNegatedAdjacency(): void
+    {
+        $parser = self::compile(self::CHANNEL_COMMENT . <<<'PP3'
+            Pair -> { return 'ok'; }
+              : <T_NAME> !~ ::T_DOT:: <T_NAME>
+              ;
+            PP3);
+
+        Assert::same($parser->parse(StringSource::createFromString('a/* here */.b')), 'ok');
+
+        Expect::exception(UnexpectedTokenException::class);
+
+        $parser->parse(StringSource::createFromString('a.b'));
+    }
+
+    public function testACommentOfAChannelElsewhereDoesNotMatter(): void
+    {
+        $parser = self::compile(self::CHANNEL_COMMENT . <<<'PP3'
+            Pair -> { return 'ok'; }
+              : <T_NAME> ~ ::T_DOT:: <T_NAME>
+              ;
+            PP3);
+
+        Assert::same($parser->parse(StringSource::createFromString('a./* here */b')), 'ok');
+    }
+
+    public function testACommentOfAChannelReadByNameIsStillWrittenInBetween(): void
+    {
+        // The token the grammar reads after "~" is not known yet, so a comment
+        // standing there is something written in between, even when it is the
+        // very token the grammar reads next
+        $parser = self::compile(self::CHANNEL_COMMENT . <<<'PP3'
+            Pair -> { return 'ok'; }
+              : <T_NAME> ~ <T_COMMENT>
+              ;
+            PP3);
+
+        Expect::exception(UnexpectedTokenException::class);
+
+        $parser->parse(StringSource::createFromString('a/* here */'));
+    }
+
     public function testAdjacencyAfterAnOptionalStatementIsReported(): void
     {
         Expect::exception(ParserCompilerException::class)
@@ -134,6 +198,81 @@ final class PP3AdjacencyTest extends TestCase
 
         Assert::string($code)
             ->contains('\Phplrt\Parser\Grammar\Adjacency(true)');
+    }
+
+    public function testNegatedAdjacencyRequiresSomethingInBetween(): void
+    {
+        $parser = self::compile(<<<'PP3'
+            %skip  T_WHITESPACE  \s++
+            %token T_DIGIT       \d++
+
+            Digits -> {
+                $result = [];
+
+                foreach ((array) $children as $token) {
+                    $result[] = $token->value;
+                }
+
+                return $result;
+            }
+              : (<T_DIGIT> !~)* <T_DIGIT>
+              ;
+            PP3);
+
+        Assert::same($parser->parse(StringSource::createFromString('1 2 3')), ['1', '2', '3']);
+    }
+
+    public function testNegatedAdjacencyRejectsTokensWrittenTogether(): void
+    {
+        $parser = self::compile(<<<'PP3'
+            %skip  T_WHITESPACE  \s++
+            %token T_NAME        \w++
+            %token T_DOT         \.
+
+            Pair -> { return 'ok'; }
+              : <T_NAME> !~ ::T_DOT::
+              ;
+            PP3);
+
+        Assert::same($parser->parse(StringSource::createFromString('a .')), 'ok');
+
+        Expect::exception(UnexpectedTokenException::class);
+
+        $parser->parse(StringSource::createFromString('a.'));
+    }
+
+    public function testNegationMayBeWrittenApartFromAdjacency(): void
+    {
+        $parser = self::compile(<<<'PP3'
+            %skip  T_WHITESPACE  \s++
+            %token T_NAME        \w++
+            %token T_DOT         \.
+
+            Pair -> { return 'ok'; }
+              : <T_NAME> ! ~ ::T_DOT::
+              ;
+            PP3);
+
+        Assert::same($parser->parse(StringSource::createFromString('a .')), 'ok');
+
+        Expect::exception(UnexpectedTokenException::class);
+
+        $parser->parse(StringSource::createFromString('a.'));
+    }
+
+    public function testNegatedAdjacencyIsWrittenDownAsSourceCode(): void
+    {
+        $code = (string) (new Compiler())
+            ->load(StringSource::createFromString(<<<'PP3'
+                %token T_NAME  \w++
+                %token T_DOT   \.
+
+                Pair : <T_NAME> !~ ::T_DOT:: ;
+                PP3))
+            ->generate();
+
+        Assert::string($code)
+            ->contains('\Phplrt\Parser\Grammar\Adjacency(false)');
     }
 
     private static function compile(string $grammar): ParserInterface
